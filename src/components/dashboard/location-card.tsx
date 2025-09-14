@@ -19,7 +19,7 @@ interface LocationCardProps {
 
 const containerStyle = {
   width: '100%',
-  height: '200px',
+  height: '100%',
   borderRadius: '0.5rem',
 };
 
@@ -171,25 +171,27 @@ export function LocationCard({ onPositionChange }: LocationCardProps) {
     }
     if (isLoaded && position) {
       return (
-        <div className="space-y-2">
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={{ lat: position.latitude, lng: position.longitude }}
-            zoom={14}
-            options={mapOptions}
-          >
-            <MarkerF
-              position={{ lat: position.latitude, lng: position.longitude }}
-            />
-            {redZones.map((zone, index) => (
-              <CircleF
-                key={index}
-                center={zone.center}
-                radius={zone.radius}
-                options={redZoneCircleOptions}
+        <div className="w-full h-full space-y-2">
+          <div className="w-full h-full aspect-square">
+            <GoogleMap
+              mapContainerStyle={containerStyle}
+              center={{ lat: position.latitude, lng: position.longitude }}
+              zoom={14}
+              options={mapOptions}
+            >
+              <MarkerF
+                position={{ lat: position.latitude, lng: position.longitude }}
               />
-            ))}
-          </GoogleMap>
+              {redZones.map((zone, index) => (
+                <CircleF
+                  key={index}
+                  center={zone.center}
+                  radius={zone.radius}
+                  options={redZoneCircleOptions}
+                />
+              ))}
+            </GoogleMap>
+          </div>
           <div className="text-center">
             <div className="font-mono text-sm text-muted-foreground">
               <span>Lat: {position.latitude.toFixed(5)}</span>
@@ -215,7 +217,7 @@ export function LocationCard({ onPositionChange }: LocationCardProps) {
         <MapPin className="h-5 w-5 text-primary" />
         <CardTitle className="text-xl font-headline">Live Location</CardTitle>
       </CardHeader>
-      <CardContent className="flex min-h-[240px] items-center justify-center p-2">
+      <CardContent className="flex h-[300px] md:h-auto md:aspect-square items-center justify-center p-2">
         {renderContent()}
       </CardContent>
     </Card>
