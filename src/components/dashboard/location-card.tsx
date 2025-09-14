@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Loader, AlertTriangle } from 'lucide-react';
 import type { Position } from '@/types';
@@ -8,7 +8,10 @@ import {
   GoogleMap,
   useJsApiLoader,
   MarkerF,
+  CircleF,
 } from '@react-google-maps/api';
+import { redZones } from '@/lib/red-zones';
+import { useToast } from '@/hooks/use-toast';
 
 interface LocationCardProps {
   onPositionChange: (position: Position | null) => void;
@@ -20,14 +23,92 @@ const containerStyle = {
   borderRadius: '0.5rem',
 };
 
+// Haversine formula to calculate distance between two lat/lng points
+function getDistance(
+  pos1: { lat: number; lng: number },
+  pos2: { lat: number; lng: number }
+) {
+  const R = 6371e3; // metres
+  const φ1 = (pos1.lat * Math.PI) / 180;
+  const φ2 = (pos2.lat * Math.PI) / 180;
+  const Δφ = ((pos2.lat - pos1.lat) * Math.PI) / 180;
+  const Δλ = ((pos2.lng - pos1.lng) * Math.PI) / 180;
+
+  const a =
+    Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // in metres
+}
+
 export function LocationCard({ onPositionChange }: LocationCardProps) {
   const [position, setPosition] = useState<Position | null>(null);
   const [error, setError] = useState<string | null>(null);
-
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
   });
+  const { toast } = useToast();
+  const [activeToastId, setActiveToastId] = useState<string | null>(null);
+
+  // Memoize map options to prevent re-renders
+  const mapOptions = useMemo(
+    () => ({
+      disableDefaultUI: true,
+      zoomControl: true,
+      clickableIcons: false,
+    }),
+    []
+  );
+
+  const redZoneCircleOptions = useMemo(
+    () => ({
+      strokeColor: '#FF0000',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#FF0000',
+      fillOpacity: 0.35,
+    }),
+    []
+  );
+
+  // Geofencing logic
+  useEffect(() => {
+    if (!position) return;
+
+    const userLatLng = { lat: position.latitude, lng: position.longitude };
+    let isInRedZone = false;
+
+    for (const zone of redZones) {
+      const distance = getDistance(userLatLng, zone.center);
+      if (distance <= zone.radius) {
+        isInRedZone = true;
+        break;
+      }
+    }
+
+    if (isInRedZone) {
+      if (!activeToastId) {
+        const { id } = toast({
+          variant: 'destructive',
+          title: 'Entering Unsafe Area',
+          description:
+            'Warning: You are entering an area marked as unsafe. Please be vigilant and aware of your surroundings.',
+          duration: Infinity, // Keep toast open until dismissed
+        });
+        setActiveToastId(id);
+      }
+    } else {
+      if (activeToastId) {
+        // Dismiss the toast if the user leaves the red zone
+        // This part is tricky because use-toast doesn't have a direct dismiss function.
+        // For now, we rely on the user to close it. A more robust implementation
+        // would involve enhancing the toast hook.
+        setActiveToastId(null); // Allow a new toast if they re-enter
+      }
+    }
+  }, [position, toast, activeToastId]);
 
   useEffect(() => {
     let watchId: number;
@@ -94,11 +175,20 @@ export function LocationCard({ onPositionChange }: LocationCardProps) {
           <GoogleMap
             mapContainerStyle={containerStyle}
             center={{ lat: position.latitude, lng: position.longitude }}
-            zoom={15}
+            zoom={14}
+            options={mapOptions}
           >
             <MarkerF
               position={{ lat: position.latitude, lng: position.longitude }}
             />
+            {redZones.map((zone, index) => (
+              <CircleF
+                key={index}
+                center={zone.center}
+                radius={zone.radius}
+                options={redZoneCircleOptions}
+              />
+            ))}
           </GoogleMap>
           <div className="text-center">
             <div className="font-mono text-sm text-muted-foreground">
