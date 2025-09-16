@@ -92,9 +92,8 @@ export function LocationCard({ onPositionChange }: LocationCardProps) {
       if (!activeToastId) {
         const { id } = toast({
           variant: 'destructive',
-          title: 'Entering Unsafe Area',
-          description:
-            'Warning: You are entering an area marked as unsafe. Please be vigilant and aware of your surroundings.',
+          title: 'You are in a High-Risk Zone',
+          description: 'Be careful with your stuff and members.',
           duration: Infinity, // Keep toast open until dismissed
         });
         setActiveToastId(id);

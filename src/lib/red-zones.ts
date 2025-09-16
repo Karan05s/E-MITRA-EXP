@@ -4,18 +4,18 @@
 // Each zone is a circle defined by a center (lat, lng) and a radius in meters.
 export const redZones = [
   {
-    // Example Red Zone 1: A sample location
-    center: { lat: 28.6139, lng: 77.2090 }, // Approx. Connaught Place, Delhi
-    radius: 500, // 500 meters
+    // Example Red Zone 1: Hamidia Road Area, Bhopal
+    center: { lat: 23.2594, lng: 77.4037 }, 
+    radius: 700, // 700 meters
   },
   {
-    // Example Red Zone 2: Another sample location
-    center: { lat: 19.0760, lng: 72.8777 }, // Approx. Bandra, Mumbai
-    radius: 750, // 750 meters
+    // Example Red Zone 2: Near Bhopal Junction Railway Station
+    center: { lat: 23.2666, lng: 77.4203 },
+    radius: 800, // 800 meters
   },
    {
-    // Example Red Zone 3: A larger area
-    center: { lat: 12.9716, lng: 77.5946 }, // Approx. Bengaluru City
-    radius: 1000, // 1 kilometer
+    // Example Red Zone 3: A part of Old Bhopal
+    center: { lat: 23.2530, lng: 77.4093 },
+    radius: 600, // 600 meters
   },
 ];
