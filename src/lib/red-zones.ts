@@ -3,7 +3,28 @@
 
 // Each zone is a circle defined by a center (lat, lng) and a radius in meters.
 export const redZones = [
-  // Higher Risk Areas
+  // New user-provided points
+  {
+    // Narela Shankri / Road
+    center: { lat: 23.2682, lng: 77.4644 },
+    radius: 1000, // 1 km
+  },
+  {
+    // Anand Nagar
+    center: { lat: 23.2508, lng: 77.4858 },
+    radius: 500, // 0.5 km
+  },
+  {
+    // Patel Nagar
+    center: { lat: 23.255, lng: 77.502 },
+    radius: 500, // 0.5 km
+  },
+  {
+    // LNCT Bhopal
+    center: { lat: 23.2504, lng: 77.525 },
+    radius: 1000, // 1 km
+  },
+  // Higher Risk Areas from previous request
   {
     // MP Nagar
     center: { lat: 23.235, lng: 77.436 },
