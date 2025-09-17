@@ -15,19 +15,27 @@ import {
   Phone,
   HeartPulse,
   ShieldAlert,
+  Users,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getSafetySuggestions } from '@/app/actions';
-import type { Position } from '@/types';
+import type { Position, EmergencyContact } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 interface SosModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   position: Position | null;
+  emergencyContacts: EmergencyContact[];
 }
 
-export function SosModal({ isOpen, onOpenChange, position }: SosModalProps) {
+export function SosModal({
+  isOpen,
+  onOpenChange,
+  position,
+  emergencyContacts,
+}: SosModalProps) {
   const [suggestions, setSuggestions] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -151,6 +159,35 @@ export function SosModal({ isOpen, onOpenChange, position }: SosModalProps) {
               </div>
             </a>
           </div>
+
+          {emergencyContacts.length > 0 && (
+            <>
+              <Separator className="my-4" />
+              <div className="space-y-3">
+                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Your Emergency Contacts
+                </h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {emergencyContacts.map((contact, index) => (
+                    <a
+                      key={index}
+                      href={`tel:${contact.phone}`}
+                      className="flex items-center justify-between gap-3 rounded-lg border p-3 transition-colors hover:bg-muted"
+                    >
+                      <div>
+                        <p className="font-semibold">{contact.name}</p>
+                        <p className="text-sm text-muted-foreground">{contact.phone}</p>
+                      </div>
+                       <div className="rounded-full bg-primary/10 p-2">
+                        <Phone className="h-5 w-5 text-primary" />
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -2,19 +2,26 @@
 
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
-import { LogOut, Shield } from 'lucide-react';
+import { LogOut, Shield, Menu } from 'lucide-react';
 import type { User } from '@/types';
 import Link from 'next/link';
 
 interface HeaderProps {
   user: User;
   onLogout: () => void;
+  onProfileClick: () => void;
 }
 
-export function Header({ user, onLogout }: HeaderProps) {
+export function Header({ user, onLogout, onProfileClick }: HeaderProps) {
   return (
     <header className="flex items-center justify-between border-b bg-card p-4">
-      <Logo />
+      <div className="flex items-center gap-2">
+         <Button variant="ghost" size="icon" onClick={onProfileClick}>
+          <Menu className="h-6 w-6" />
+          <span className="sr-only">Open Profile</span>
+        </Button>
+        <Logo />
+      </div>
       <div className="flex items-center gap-2">
         <span className="hidden text-sm font-medium text-muted-foreground sm:inline">
           Welcome, {user.name}

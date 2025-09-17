@@ -13,3 +13,8 @@ export interface ChatMessage {
   role: 'user' | 'model';
   content: string;
 }
+
+export interface EmergencyContact {
+  name: string;
+  phone: string;
+}

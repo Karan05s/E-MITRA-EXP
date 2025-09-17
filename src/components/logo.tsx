@@ -1,12 +1,13 @@
 export function Logo() {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" aria-label="E-Mitra Home">
       <svg
-        width="36"
-        height="36"
+        width="32"
+        height="32"
         viewBox="0 0 100 100"
         xmlns="http://www.w3.org/2000/svg"
         className="rounded-full"
+        aria-hidden="true"
       >
         <path d="M0 50 A 50 50 0 0 1 100 50" fill="hsl(var(--primary))" />
         <path
@@ -37,7 +38,7 @@ export function Logo() {
           E-M
         </text>
       </svg>
-      <h1 className="text-2xl font-bold font-headline text-foreground">
+      <h1 className="text-xl font-bold font-headline text-foreground hidden sm:inline-block">
         E-Mitra
       </h1>
     </div>

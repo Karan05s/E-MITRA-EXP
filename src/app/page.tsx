@@ -10,9 +10,10 @@ import { SosModal } from '@/components/dashboard/sos-modal';
 import { SuggestionsModal } from '@/components/dashboard/suggestions-modal';
 import { TranslationModal } from '@/components/dashboard/translation-modal';
 import { ChatModal } from '@/components/dashboard/chat-modal';
+import { ProfileSidebar } from '@/components/dashboard/profile-sidebar';
 import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Position } from '@/types';
+import type { Position, EmergencyContact } from '@/types';
 import { UserIDCard } from '@/components/dashboard/user-id-card';
 
 const DashboardLoadingSkeleton: FC = () => (
@@ -32,7 +33,9 @@ export default function DashboardPage() {
   const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
   const [isTranslationOpen, setTranslationOpen] = useState(false);
   const [isChatOpen, setChatOpen] = useState(false);
+  const [isProfileSidebarOpen, setProfileSidebarOpen] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
+  const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
 
   if (isLoading || !user) {
     return <DashboardLoadingSkeleton />;
@@ -41,7 +44,11 @@ export default function DashboardPage() {
   return (
     <>
       <div className="flex min-h-screen flex-col bg-background">
-        <Header user={user} onLogout={logout} />
+        <Header
+          user={user}
+          onLogout={logout}
+          onProfileClick={() => setProfileSidebarOpen(true)}
+        />
         <main className="flex-grow p-4 md:p-6">
           <div className="mx-auto max-w-4xl space-y-6">
             <UserIDCard user={user} />
@@ -54,11 +61,12 @@ export default function DashboardPage() {
           onTranslate={() => setTranslationOpen(true)}
           onChat={() => setChatOpen(true)}
         />
-        {/* Modals */}
+        {/* Modals & Sidebars */}
         <SosModal
           isOpen={isSosOpen}
           onOpenChange={setSosOpen}
           position={position}
+          emergencyContacts={emergencyContacts}
         />
         <SuggestionsModal
           isOpen={isSuggestionsOpen}
@@ -73,6 +81,13 @@ export default function DashboardPage() {
           isOpen={isChatOpen} 
           onOpenChange={setChatOpen} 
           user={user}
+        />
+        <ProfileSidebar
+          isOpen={isProfileSidebarOpen}
+          onOpenChange={setProfileSidebarOpen}
+          user={user}
+          emergencyContacts={emergencyContacts}
+          onEmergencyContactsChange={setEmergencyContacts}
         />
       </div>
     </>
