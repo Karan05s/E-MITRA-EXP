@@ -24,6 +24,7 @@ import {
   Search,
   RefreshCw,
   Users,
+  Lock,
 } from 'lucide-react';
 import { getUserById } from '@/services/user-service';
 import { getAllActiveUsers } from '@/app/actions';
@@ -55,6 +56,10 @@ export default function AdminPage() {
   const [activeUsers, setActiveUsers] = useState<UserType[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [usersError, setUsersError] = useState<string | null>(null);
+
+  const [usersPassword, setUsersPassword] = useState('');
+  const [isUsersSectionUnlocked, setIsUsersSectionUnlocked] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -93,10 +98,22 @@ export default function AdminPage() {
     }
     setIsLoadingUsers(false);
   };
+  
+  const handleUnlockUsers = () => {
+    if (usersPassword === '865524') {
+      setIsUsersSectionUnlocked(true);
+      setPasswordError(null);
+      fetchActiveUsers();
+    } else {
+      setPasswordError('Incorrect password.');
+    }
+  };
 
   useEffect(() => {
-    fetchActiveUsers();
-  }, []);
+    if (isUsersSectionUnlocked) {
+      fetchActiveUsers();
+    }
+  }, [isUsersSectionUnlocked]);
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-background p-4 md:p-6">
@@ -213,56 +230,86 @@ export default function AdminPage() {
 
             {/* Active Users Section */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="space-y-1">
+              {!isUsersSectionUnlocked ? (
+                <div className="space-y-4">
                   <h3 className="text-xl font-headline flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Active Users
+                    <Lock className="h-5 w-5" />
+                    Unlock Active Users List
                   </h3>
-                  <p className="text-muted-foreground text-sm">
-                    A list of all currently active users.
+                   <p className="text-muted-foreground text-sm">
+                    Enter the password to view the list of all active users.
                   </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={fetchActiveUsers}
-                  disabled={isLoadingUsers}
-                >
-                  {isLoadingUsers ? (
-                    <Loader className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-4 w-4" />
+                  <div className="flex w-full max-w-xs items-center space-x-2">
+                    <Input
+                      type="password"
+                      placeholder="Enter password..."
+                      value={usersPassword}
+                      onChange={(e) => setUsersPassword(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleUnlockUsers()}
+                    />
+                    <Button onClick={handleUnlockUsers}>Unlock</Button>
+                  </div>
+                   {passwordError && (
+                    <div className="text-destructive flex items-center gap-2 mt-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      <p>{passwordError}</p>
+                    </div>
                   )}
-                  <span className="sr-only">Refresh User List</span>
-                </Button>
-              </div>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-headline flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Active Users
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        A list of all currently active users.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={fetchActiveUsers}
+                      disabled={isLoadingUsers}
+                    >
+                      {isLoadingUsers ? (
+                        <Loader className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">Refresh User List</span>
+                    </Button>
+                  </div>
 
-              {isLoadingUsers && <p>Loading users...</p>}
-              {usersError && (
-                <p className="text-destructive">{usersError}</p>
-              )}
-              {!isLoadingUsers &&
-                !usersError &&
-                (activeUsers.length > 0 ? (
-                  <ul className="space-y-3">
-                    {activeUsers.map((user) => (
-                      <li
-                        key={user.id}
-                        className="flex items-center justify-between rounded-lg border p-3"
-                      >
-                        <span className="font-semibold">{user.name}</span>
-                        <span className="font-mono text-sm text-muted-foreground">
-                          {user.id.replace(/(\d{4})(?=\d)/g, '$1 ')}
-                        </span>
-                      </li>
+                  {isLoadingUsers && <p>Loading users...</p>}
+                  {usersError && (
+                    <p className="text-destructive">{usersError}</p>
+                  )}
+                  {!isLoadingUsers &&
+                    !usersError &&
+                    (activeUsers.length > 0 ? (
+                      <ul className="space-y-3">
+                        {activeUsers.map((user) => (
+                          <li
+                            key={user.id}
+                            className="flex items-center justify-between rounded-lg border p-3"
+                          >
+                            <span className="font-semibold">{user.name}</span>
+                            <span className="font-mono text-sm text-muted-foreground">
+                              {user.id.replace(/(\d{4})(?=\d)/g, '$1 ')}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-muted-foreground text-center py-4">
+                        No active users found.
+                      </p>
                     ))}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">
-                    No active users found.
-                  </p>
-                ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
