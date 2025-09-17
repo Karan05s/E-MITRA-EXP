@@ -1,6 +1,7 @@
 'use server';
 
 import type { User, Position } from '@/types';
+import { getLoggedInUserFromLocalStorage } from './local-storage-service';
 
 // Simulate a database of users and their last known locations.
 const mockUserDatabase: Record<string, { user: User; position: Position }> = {
@@ -41,7 +42,20 @@ export async function getUserById(
   // Simulate network delay
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-  const data = mockUserDatabase[userId];
+  // First, check our persistent mock database
+  let data = mockUserDatabase[userId];
+
+  // If not found, check if the ID matches the currently logged-in user in the browser.
+  // This simulates finding a user who was registered in this session.
+  if (!data) {
+    const loggedInUser = await getLoggedInUserFromLocalStorage();
+    if (loggedInUser && loggedInUser.id === userId) {
+       // See if we have a stored position for them, otherwise use a default
+       const position = mockUserDatabase[userId]?.position || { latitude: 23.2599, longitude: 77.4126 };
+       mockUserDatabase[userId] = { user: loggedInUser, position };
+       data = mockUserDatabase[userId];
+    }
+  }
 
   if (data) {
     return { user: data.user, position: data.position };
