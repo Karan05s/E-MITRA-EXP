@@ -16,7 +16,7 @@ import {z} from 'genkit';
 const SafetyTipsInputSchema = z.object({
   locationDescription: z
     .string()
-    .describe('A description of the user\'s current location.'),
+    .describe('A description of the user\'s current location in Bhopal.'),
 });
 export type SafetyTipsInput = z.infer<typeof SafetyTipsInputSchema>;
 
@@ -24,7 +24,7 @@ export type SafetyTipsInput = z.infer<typeof SafetyTipsInputSchema>;
 const SafetyTipsOutputSchema = z.object({
   safetyTips: z
     .string()
-    .describe('Context-aware safety tips based on the location description.'),
+    .describe('Context-aware safety tips and safe tourist place suggestions for Bhopal.'),
 });
 export type SafetyTipsOutput = z.infer<typeof SafetyTipsOutputSchema>;
 
@@ -38,14 +38,14 @@ const safetyTipsPrompt = ai.definePrompt({
   name: 'safetyTipsPrompt',
   input: {schema: SafetyTipsInputSchema},
   output: {schema: SafetyTipsOutputSchema},
-  prompt: `You are a safety expert providing context-aware safety tips.
+  prompt: `You are a safety expert providing context-aware safety tips for a user in Bhopal.
 
-  Based on the user\'s current location:
-  Location Description: {{{locationDescription}}}
+Based on the user's current location:
+Location Description: {{{locationDescription}}}
 
-  Provide a few concise and practical safety tips relevant to this location.
-  Make sure the suggestions are applicable to the location provided and are easy to follow.
-  Focus on general safety and awareness rather than specific threats.`,
+First, provide a few concise and practical safety tips relevant to this location. Make sure the suggestions are applicable to the location provided and are easy to follow. Focus on general safety and awareness.
+
+Second, as a helpful guide for tourists, suggest a few safe and popular tourist places in Bhopal where a person can visit freely without much concern. List a few places and briefly mention why they are considered safe or good for tourists.`,
 });
 
 // Define the flow
