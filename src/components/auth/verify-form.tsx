@@ -51,7 +51,7 @@ export function VerifyForm({ name, mobile }: VerifyFormProps) {
     };
 
     // "Register" the user in our mock database
-    await registerUser(newUser);
+    await registerUser(newUser, null);
 
     localStorage.setItem('e-mitra-user', JSON.stringify(newUser));
     toast({

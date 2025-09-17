@@ -13,8 +13,12 @@ import {
   type TranslateTextInput,
 } from '@/ai/flows/translate-text';
 import { chat as chatFlow, type ChatMessage } from '@/ai/flows/chat';
-import { registerUserInDb, removeUserFromDb } from '@/services/user-service';
-import type { User } from '@/types';
+import {
+  registerUserInDb,
+  removeUserFromDb,
+  updateUserPositionInDb,
+} from '@/services/user-service';
+import type { User, Position } from '@/types';
 
 
 export async function getSafetySuggestions(
@@ -62,9 +66,9 @@ export async function chat(history: ChatMessage[]) {
   }
 }
 
-export async function registerUser(user: User) {
+export async function registerUser(user: User, position: Position | null) {
   try {
-    await registerUserInDb(user);
+    await registerUserInDb(user, position);
     return { success: true };
   } catch (error) {
     console.error('Error in registerUser:', error);
@@ -79,5 +83,15 @@ export async function removeUser(userId: string) {
   } catch (error) {
     console.error('Error in removeUser:', error);
     return { success: false, error: 'Failed to remove user.' };
+  }
+}
+
+export async function updateUserPosition(userId: string, position: Position) {
+  try {
+    await updateUserPositionInDb(userId, position);
+    return { success: true };
+  } catch (error) {
+    console.error('Error in updateUserPosition:', error);
+    return { success: false, error: 'Failed to update user position.' };
   }
 }

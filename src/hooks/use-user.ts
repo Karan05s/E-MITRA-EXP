@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { User } from '@/types';
 import { removeUser } from '@/app/actions';
+import { useDebouncedCallback } from 'use-debounce';
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
@@ -41,12 +42,15 @@ export function useUser() {
 
   const logout = useCallback(async () => {
     const currentUser = user;
-    if (currentUser) {
-      await removeUser(currentUser.id);
-    }
+    // Clear localStorage immediately for a snappy UI response
     window.localStorage.removeItem('e-mitra-user');
     setUser(null);
     router.replace('/register');
+
+    // Then, perform the backend cleanup
+    if (currentUser) {
+      await removeUser(currentUser.id);
+    }
   }, [router, user]);
 
   return { user, isLoading, logout };

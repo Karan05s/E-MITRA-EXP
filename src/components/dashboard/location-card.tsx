@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Loader, AlertTriangle } from 'lucide-react';
-import type { Position } from '@/types';
+import type { Position, User } from '@/types';
 import {
   GoogleMap,
   useJsApiLoader,
@@ -12,6 +12,9 @@ import {
 } from '@react-google-maps/api';
 import { redZones } from '@/lib/red-zones';
 import { useToast } from '@/hooks/use-toast';
+import { useUser } from '@/hooks/use-user';
+import { updateUserPosition } from '@/app/actions';
+import { useDebouncedCallback } from 'use-debounce';
 
 interface LocationCardProps {
   onPositionChange: (position: Position | null) => void;
@@ -43,6 +46,7 @@ function getDistance(
 }
 
 export function LocationCard({ onPositionChange }: LocationCardProps) {
+  const { user } = useUser();
   const [position, setPosition] = useState<Position | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { isLoaded } = useJsApiLoader({
@@ -51,6 +55,14 @@ export function LocationCard({ onPositionChange }: LocationCardProps) {
   });
   const { toast } = useToast();
   const [activeToastId, setActiveToastId] = useState<string | null>(null);
+
+  // Debounce the database update to avoid excessive writes
+  const debouncedUpdatePosition = useDebouncedCallback(
+    (userId: string, newPosition: Position) => {
+      updateUserPosition(userId, newPosition);
+    },
+    2000 // Only update every 2 seconds
+  );
 
   // Memoize map options to prevent re-renders
   const mapOptions = useMemo(
@@ -97,7 +109,7 @@ export function LocationCard({ onPositionChange }: LocationCardProps) {
           duration: Infinity, // Keep toast open until dismissed
         });
         setActiveToastId(id);
-        
+
         // Vibrate 3 times if the API is supported
         if (navigator.vibrate) {
           navigator.vibrate([200, 100, 200, 100, 200]);
@@ -105,11 +117,9 @@ export function LocationCard({ onPositionChange }: LocationCardProps) {
       }
     } else {
       if (activeToastId) {
-        // Dismiss the toast if the user leaves the red zone
-        // This part is tricky because use-toast doesn't have a direct dismiss function.
-        // For now, we rely on the user to close it. A more robust implementation
-        // would involve enhancing the toast hook.
-        setActiveToastId(null); // Allow a new toast if they re-enter
+        // This is a bit of a hack. Since we can't programmatically dismiss,
+        // we'll just allow a new toast if they re-enter a zone.
+        setActiveToastId(null);
       }
     }
   }, [position, toast, activeToastId]);
@@ -126,6 +136,9 @@ export function LocationCard({ onPositionChange }: LocationCardProps) {
           };
           setPosition(newPosition);
           onPositionChange(newPosition);
+          if (user?.id) {
+            debouncedUpdatePosition(user.id, newPosition);
+          }
           setError(null);
         },
         (err) => {
@@ -161,7 +174,7 @@ export function LocationCard({ onPositionChange }: LocationCardProps) {
         navigator.geolocation.clearWatch(watchId);
       }
     };
-  }, [onPositionChange]);
+  }, [onPositionChange, user, debouncedUpdatePosition]);
 
   const renderContent = () => {
     if (error) {

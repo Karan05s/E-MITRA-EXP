@@ -46,29 +46,47 @@ export async function getUserById(
   if (data) {
     return { user: data.user, position: data.position };
   }
-  
+
   return { user: null, position: null };
 }
 
 /**
  * Simulates adding a new user to our database.
  */
-export async function registerUserInDb(user: User) {
-    mockUserDatabase[user.id] = {
-        user: user,
-        // For the prototype, we'll give them a default location when they register.
-        // A real app would get this from their device.
-        position: { latitude: 23.2599, longitude: 77.4126 } // Bhopal center
-    };
-    return { success: true };
+export async function registerUserInDb(
+  user: User,
+  position: Position | null
+) {
+  if (mockUserDatabase[user.id]) {
+    return; // User already exists
+  }
+  mockUserDatabase[user.id] = {
+    user: user,
+    position: position || { latitude: 23.2599, longitude: 77.4126 }, // Bhopal center
+  };
+  console.log('Registered user:', user.name, 'with ID:', user.id);
+  console.log('Current DB state:', Object.keys(mockUserDatabase));
 }
 
 /**
  * Simulates removing a user from our database.
  */
 export async function removeUserFromDb(userId: string) {
-    if (mockUserDatabase[userId]) {
-        delete mockUserDatabase[userId];
-    }
-    return { success: true };
+  if (mockUserDatabase[userId]) {
+    console.log('Removing user:', mockUserDatabase[userId].user.name);
+    delete mockUserDatabase[userId];
+    console.log('Current DB state:', Object.keys(mockUserDatabase));
+  }
+}
+
+/**
+ * Simulates updating a user's position in the database.
+ */
+export async function updateUserPositionInDb(
+  userId: string,
+  position: Position
+) {
+  if (mockUserDatabase[userId]) {
+    mockUserDatabase[userId].position = position;
+  }
 }
