@@ -44,6 +44,8 @@ const mapOptions = {
   clickableIcons: false,
 };
 
+const LIBRARIES = ['places'];
+
 export default function AdminPage() {
   const [userId, setUserId] = useState('');
   const [trackedUser, setTrackedUser] = useState<UserType | null>(null);
@@ -64,6 +66,7 @@ export default function AdminPage() {
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries: LIBRARIES as any,
   });
 
   const handleTrackUser = async () => {
