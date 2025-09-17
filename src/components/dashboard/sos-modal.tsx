@@ -25,7 +25,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import {
   GoogleMap,
-  useJsApiLoader,
   MarkerF,
 } from '@react-google-maps/api';
 
@@ -34,6 +33,7 @@ interface SosModalProps {
   onOpenChange: (isOpen: boolean) => void;
   position: Position | null;
   emergencyContacts: EmergencyContact[];
+  isMapLoaded: boolean;
 }
 
 const containerStyle = {
@@ -48,13 +48,12 @@ const mapOptions = {
   clickableIcons: false,
 };
 
-const LIBRARIES = ['places'];
-
 export function SosModal({
   isOpen,
   onOpenChange,
   position,
   emergencyContacts,
+  isMapLoaded,
 }: SosModalProps) {
   const [suggestions, setSuggestions] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -68,12 +67,6 @@ export function SosModal({
   const [policeStations, setPoliceStations] = useState<
     google.maps.places.PlaceResult[]
   >([]);
-
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script-sos',
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries: LIBRARIES as any,
-  });
 
   const searchNearby = (
     service: google.maps.places.PlacesService,
@@ -106,12 +99,12 @@ export function SosModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (isLoaded && map && position) {
+    if (isMapLoaded && map && position) {
       const service = new google.maps.places.PlacesService(map);
       searchNearby(service, 'hospital', setHospitals);
       searchNearby(service, 'police', setPoliceStations);
     }
-  }, [isLoaded, map, position]);
+  }, [isMapLoaded, map, position]);
 
   const fetchSuggestions = async () => {
     if (!position) {
@@ -175,7 +168,7 @@ export function SosModal({
             Nearby Help
           </h3>
           <div className="w-full h-[300px] rounded-lg overflow-hidden border">
-            {isLoaded && position ? (
+            {isMapLoaded && position ? (
               <GoogleMap
                 mapContainerStyle={containerStyle}
                 center={{

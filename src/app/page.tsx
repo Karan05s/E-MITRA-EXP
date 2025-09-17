@@ -15,6 +15,9 @@ import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Position, EmergencyContact } from '@/types';
 import { UserIDCard } from '@/components/dashboard/user-id-card';
+import { useJsApiLoader } from '@react-google-maps/api';
+
+const LIBRARIES = ['places'];
 
 const DashboardLoadingSkeleton: FC = () => (
   <div className="flex h-screen w-full flex-col items-center justify-center bg-background p-4">
@@ -37,6 +40,12 @@ export default function DashboardPage() {
   const [position, setPosition] = useState<Position | null>(null);
   const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
 
+  const { isLoaded: isMapLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries: LIBRARIES as any,
+  });
+
   if (isLoading || !user) {
     return <DashboardLoadingSkeleton />;
   }
@@ -52,7 +61,10 @@ export default function DashboardPage() {
         <main className="flex-grow p-4 md:p-6">
           <div className="mx-auto max-w-4xl space-y-6">
             <UserIDCard user={user} />
-            <LocationCard onPositionChange={setPosition} />
+            <LocationCard 
+              onPositionChange={setPosition} 
+              isMapLoaded={isMapLoaded} 
+            />
           </div>
         </main>
         <ActionsBar
@@ -67,6 +79,7 @@ export default function DashboardPage() {
           onOpenChange={setSosOpen}
           position={position}
           emergencyContacts={emergencyContacts}
+          isMapLoaded={isMapLoaded}
         />
         <SuggestionsModal
           isOpen={isSuggestionsOpen}

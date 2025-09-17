@@ -6,7 +6,6 @@ import { MapPin, Loader, AlertTriangle } from 'lucide-react';
 import type { Position, User } from '@/types';
 import {
   GoogleMap,
-  useJsApiLoader,
   MarkerF,
   CircleF,
 } from '@react-google-maps/api';
@@ -18,6 +17,7 @@ import { useDebouncedCallback } from 'use-debounce';
 
 interface LocationCardProps {
   onPositionChange: (position: Position | null) => void;
+  isMapLoaded: boolean;
 }
 
 const containerStyle = {
@@ -45,14 +45,10 @@ function getDistance(
   return R * c; // in metres
 }
 
-export function LocationCard({ onPositionChange }: LocationCardProps) {
+export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProps) {
   const { user } = useUser();
   const [position, setPosition] = useState<Position | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const { isLoaded } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-  });
   const { toast } = useToast();
   const [activeToastId, setActiveToastId] = useState<string | null>(null);
 
@@ -186,7 +182,7 @@ export function LocationCard({ onPositionChange }: LocationCardProps) {
         </div>
       );
     }
-    if (isLoaded && position) {
+    if (isMapLoaded && position) {
       return (
         <div className="w-full h-full space-y-2">
           <div className="w-full h-full aspect-square">
