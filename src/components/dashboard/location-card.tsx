@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Loader, AlertTriangle, Expand } from 'lucide-react';
-import type { Position, User } from '@/types';
+import { MapPin, Loader, AlertTriangle } from 'lucide-react';
+import type { Position } from '@/types';
 import {
   GoogleMap,
   MarkerF,
@@ -14,13 +14,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/hooks/use-user';
 import { updateUserPosition } from '@/app/actions';
 import { useDebouncedCallback } from 'use-debounce';
-import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 
 interface LocationCardProps {
   onPositionChange: (position: Position | null) => void;
@@ -63,6 +56,7 @@ const redZoneCircleOptions = {
 const mapOptions = {
     disableDefaultUI: true,
     zoomControl: true,
+    fullscreenControl: true, // Use the native fullscreen button
     clickableIcons: false,
 };
 
@@ -94,7 +88,6 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const [activeToastId, setActiveToastId] = useState<string | null>(null);
-  const [isMapExpanded, setMapExpanded] = useState(false);
 
   // Debounce the database update to avoid excessive writes
   const debouncedUpdatePosition = useDebouncedCallback(
@@ -207,20 +200,9 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
     }
     if (isMapLoaded && position) {
       return (
-        <div className="w-full h-full space-y-2 relative group">
-          <div className="w-full h-full aspect-square">
+        <div className="w-full h-full space-y-2">
+          <div className="w-full h-full aspect-video">
             <MapView position={position} />
-          </div>
-          <div className="absolute top-1 right-1">
-            <Button
-              variant="secondary"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setMapExpanded(true)}
-              title="Expand Map"
-            >
-              <Expand className="h-4 w-4" />
-            </Button>
           </div>
           <div className="text-center">
             <div className="font-mono text-sm text-muted-foreground">
@@ -248,20 +230,10 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
           <MapPin className="h-5 w-5 text-primary" />
           <CardTitle className="text-xl font-headline">Live Location</CardTitle>
         </CardHeader>
-        <CardContent className="flex h-[300px] md:h-auto md:aspect-square items-center justify-center p-2">
+        <CardContent className="flex h-auto items-center justify-center p-2">
           {renderContent()}
         </CardContent>
       </Card>
-
-      <Dialog open={isMapExpanded} onOpenChange={setMapExpanded}>
-        <DialogContent className="h-[90vh] w-[95vw] max-w-7xl p-2 md:p-4">
-          {isMapLoaded && position && (
-            <div className="w-full h-full">
-               <MapView position={position} zoom={15}/>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
