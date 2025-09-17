@@ -1,7 +1,7 @@
 'use client';
 
 import type { FC } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/hooks/use-user';
 import { Header } from '@/components/dashboard/header';
 import { LocationCard } from '@/components/dashboard/location-card';
@@ -18,6 +18,8 @@ import { UserIDCard } from '@/components/dashboard/user-id-card';
 import { useJsApiLoader } from '@react-google-maps/api';
 
 const LIBRARIES = ['places'];
+const EMERGENCY_CONTACTS_KEY = 'e-mitra-emergency-contacts';
+
 
 const DashboardLoadingSkeleton: FC = () => (
   <div className="flex h-screen w-full flex-col items-center justify-center bg-background p-4">
@@ -45,6 +47,28 @@ export default function DashboardPage() {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries: LIBRARIES as any,
   });
+
+  // Load contacts from localStorage on initial render
+  useEffect(() => {
+    try {
+      const item = window.localStorage.getItem(EMERGENCY_CONTACTS_KEY);
+      if (item) {
+        setEmergencyContacts(JSON.parse(item));
+      }
+    } catch (error) {
+      console.error('Failed to parse emergency contacts from localStorage', error);
+    }
+  }, []);
+
+  // Save contacts to localStorage whenever they change
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(EMERGENCY_CONTACTS_KEY, JSON.stringify(emergencyContacts));
+    } catch (error) {
+       console.error('Failed to save emergency contacts to localStorage', error);
+    }
+  }, [emergencyContacts]);
+
 
   if (isLoading || !user) {
     return <DashboardLoadingSkeleton />;
