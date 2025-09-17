@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { User } from '@/types';
+import { removeUser } from '@/app/actions';
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
@@ -38,11 +39,15 @@ export function useUser() {
     }
   }, [router]);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    const currentUser = user;
+    if (currentUser) {
+      await removeUser(currentUser.id);
+    }
     window.localStorage.removeItem('e-mitra-user');
     setUser(null);
     router.replace('/register');
-  }, [router]);
+  }, [router, user]);
 
   return { user, isLoading, logout };
 }

@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import type { User } from '@/types';
+import { registerUser } from '@/app/actions';
 
 const formSchema = z.object({
   otp: z
@@ -40,7 +41,7 @@ export function VerifyForm({ name, mobile }: VerifyFormProps) {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     // In a real app, we'd verify the OTP with a backend. Here we mock success.
     console.log('Verifying OTP:', values.otp);
     const newUser: User = {
@@ -48,6 +49,9 @@ export function VerifyForm({ name, mobile }: VerifyFormProps) {
       name,
       mobile,
     };
+
+    // "Register" the user in our mock database
+    await registerUser(newUser);
 
     localStorage.setItem('e-mitra-user', JSON.stringify(newUser));
     toast({

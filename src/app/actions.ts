@@ -13,6 +13,9 @@ import {
   type TranslateTextInput,
 } from '@/ai/flows/translate-text';
 import { chat as chatFlow, type ChatMessage } from '@/ai/flows/chat';
+import { registerUserInDb, removeUserFromDb } from '@/services/user-service';
+import type { User } from '@/types';
+
 
 export async function getSafetySuggestions(
   input: GenerateSafetySuggestionsInput
@@ -56,5 +59,25 @@ export async function chat(history: ChatMessage[]) {
   } catch (error) {
     console.error('Error in chat:', error);
     return { success: false, error: 'Failed to get chat response.' };
+  }
+}
+
+export async function registerUser(user: User) {
+  try {
+    await registerUserInDb(user);
+    return { success: true };
+  } catch (error) {
+    console.error('Error in registerUser:', error);
+    return { success: false, error: 'Failed to register user.' };
+  }
+}
+
+export async function removeUser(userId: string) {
+   try {
+    await removeUserFromDb(userId);
+    return { success: true };
+  } catch (error) {
+    console.error('Error in removeUser:', error);
+    return { success: false, error: 'Failed to remove user.' };
   }
 }

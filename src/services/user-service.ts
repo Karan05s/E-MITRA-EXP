@@ -1,7 +1,6 @@
 'use server';
 
 import type { User, Position } from '@/types';
-import { getLoggedInUserFromLocalStorage } from './local-storage-service';
 
 // Simulate a database of users and their last known locations.
 const mockUserDatabase: Record<string, { user: User; position: Position }> = {
@@ -47,20 +46,29 @@ export async function getUserById(
   if (data) {
     return { user: data.user, position: data.position };
   }
-
-  // To make it feel more dynamic, let's check the localStorage of the current browser.
-  // This is a HACK for the prototype to allow tracking the currently logged-in user.
-  // In a real app this would query a central database.
-  const loggedInUser = await getLoggedInUserFromLocalStorage();
-  if (loggedInUser && loggedInUser.id === userId) {
-      return {
-          user: loggedInUser,
-          // For the prototype, we can't get their real-time location,
-          // so we'll return a static location as if we looked it up.
-          position: { latitude: 23.2599, longitude: 77.4126 } // Bhopal center
-      }
-  }
-
-
+  
   return { user: null, position: null };
+}
+
+/**
+ * Simulates adding a new user to our database.
+ */
+export async function registerUserInDb(user: User) {
+    mockUserDatabase[user.id] = {
+        user: user,
+        // For the prototype, we'll give them a default location when they register.
+        // A real app would get this from their device.
+        position: { latitude: 23.2599, longitude: 77.4126 } // Bhopal center
+    };
+    return { success: true };
+}
+
+/**
+ * Simulates removing a user from our database.
+ */
+export async function removeUserFromDb(userId: string) {
+    if (mockUserDatabase[userId]) {
+        delete mockUserDatabase[userId];
+    }
+    return { success: true };
 }

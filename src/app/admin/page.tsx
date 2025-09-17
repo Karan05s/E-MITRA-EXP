@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/card';
 import { Loader, User, MapPin, AlertTriangle, Search } from 'lucide-react';
 import { getUserById } from '@/services/user-service';
-import type { User, Position } from '@/types';
+import type { User as UserType, Position } from '@/types';
 import Link from 'next/link';
 
 const containerStyle = {
@@ -35,7 +35,7 @@ const mapOptions = {
 
 export default function AdminPage() {
   const [userId, setUserId] = useState('');
-  const [trackedUser, setTrackedUser] = useState<User | null>(null);
+  const [trackedUser, setTrackedUser] = useState<UserType | null>(null);
   const [trackedPosition, setTrackedPosition] = useState<Position | null>(
     null
   );
@@ -56,8 +56,6 @@ export default function AdminPage() {
     setTrackedUser(null);
     setTrackedPosition(null);
 
-    // In a real app, this would be a secure API call.
-    // We are using a simulated service here.
     const { user, position } = await getUserById(userId.replace(/\s/g, ''));
 
     if (user && position) {
