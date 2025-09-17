@@ -17,6 +17,7 @@ import {
   registerUserInDb,
   removeUserFromDb,
   updateUserPositionInDb,
+  getAllActiveUsers as getAllActiveUsersFromDb,
 } from '@/services/user-service';
 import type { User, Position } from '@/types';
 
@@ -93,5 +94,15 @@ export async function updateUserPosition(userId: string, position: Position) {
   } catch (error) {
     console.error('Error in updateUserPosition:', error);
     return { success: false, error: 'Failed to update user position.' };
+  }
+}
+
+export async function getAllActiveUsers() {
+  try {
+    const users = await getAllActiveUsersFromDb();
+    return { success: true, data: users };
+  } catch (error) {
+    console.error('Error getting all active users:', error);
+    return { success: false, error: 'Failed to retrieve active users.' };
   }
 }

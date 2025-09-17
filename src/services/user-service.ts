@@ -104,3 +104,12 @@ export async function updateUserPositionInDb(
     mockUserDatabase[userId].position = position;
   }
 }
+
+/**
+ * Simulates fetching all active users from the database.
+ */
+export async function getAllActiveUsers(): Promise<User[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return Object.values(mockUserDatabase).map((data) => data.user);
+}
