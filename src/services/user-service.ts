@@ -4,32 +4,7 @@ import type { User, Position } from '@/types';
 import { getLoggedInUserFromLocalStorage } from './local-storage-service';
 
 // Simulate a database of users and their last known locations.
-const mockUserDatabase: Record<string, { user: User; position: Position }> = {
-  '123456789012': {
-    user: {
-      id: '123456789012',
-      name: 'Priya Sharma',
-      mobile: '9876543210',
-    },
-    // Location: Van Vihar National Park, Bhopal
-    position: {
-      latitude: 23.2323,
-      longitude: 77.368,
-    },
-  },
-  '987654321098': {
-    user: {
-      id: '987654321098',
-      name: 'Amit Patel',
-      mobile: '8765432109',
-    },
-    // Location: DB City Mall, Bhopal
-    position: {
-      latitude: 23.235,
-      longitude: 77.435,
-    },
-  },
-};
+const mockUserDatabase: Record<string, { user: User; position: Position }> = {};
 
 /**
  * Simulates fetching a user's data and last known location by their ID.
