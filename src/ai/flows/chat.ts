@@ -26,6 +26,7 @@ If asked about topics outside of personal safety, politely steer the conversatio
   }));
 
   const { output } = await ai.generate({
+    model: 'googleai/gemini-2.5-flash',
     system: systemPrompt,
     history: messages,
   });
