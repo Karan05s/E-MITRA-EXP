@@ -56,7 +56,7 @@ const redZoneCircleOptions = {
 const mapOptions = {
     disableDefaultUI: true,
     zoomControl: true,
-    fullscreenControl: true, // Use the native fullscreen button
+    fullscreenControl: true,
     clickableIcons: false,
 };
 
@@ -200,8 +200,8 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
     }
     if (isMapLoaded && position) {
       return (
-        <div className="w-full h-full space-y-2">
-          <div className="w-full h-full aspect-video">
+        <div className="w-full h-full flex flex-col space-y-2">
+          <div className="w-full aspect-square">
             <MapView position={position} />
           </div>
           <div className="text-center">
