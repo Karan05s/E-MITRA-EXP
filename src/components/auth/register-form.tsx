@@ -45,6 +45,7 @@ export function RegisterForm() {
     toast({
       title: 'OTP Sent (For Proto)',
       description: `Your verification code is: ${otp}`,
+      duration: 15000,
     });
     router.push(
       `/verify?name=${encodeURIComponent(
