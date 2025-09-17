@@ -16,17 +16,12 @@ import {
   HeartPulse,
   ShieldAlert,
   Users,
-  Map,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getSafetySuggestions } from '@/app/actions';
 import type { Position, EmergencyContact } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
-import {
-  GoogleMap,
-  MarkerF,
-} from '@react-google-maps/api';
 
 interface SosModalProps {
   isOpen: boolean;
@@ -36,75 +31,16 @@ interface SosModalProps {
   isMapLoaded: boolean;
 }
 
-const containerStyle = {
-  width: '100%',
-  height: '100%',
-  borderRadius: '0.5rem',
-};
-
-const mapOptions = {
-  disableDefaultUI: true,
-  zoomControl: true,
-  clickableIcons: false,
-};
-
 export function SosModal({
   isOpen,
   onOpenChange,
   position,
   emergencyContacts,
-  isMapLoaded,
 }: SosModalProps) {
   const [suggestions, setSuggestions] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [hospitals, setHospitals] = useState<google.maps.places.PlaceResult[]>(
-    []
-  );
-  const [policeStations, setPoliceStations] = useState<
-    google.maps.places.PlaceResult[]
-  >([]);
-
-  const searchNearby = (
-    service: google.maps.places.PlacesService,
-    type: string,
-    setter: React.Dispatch<
-      React.SetStateAction<google.maps.places.PlaceResult[]>
-    >
-  ) => {
-    if (!position) return;
-    const request: google.maps.places.PlaceSearchRequest = {
-      location: { lat: position.latitude, lng: position.longitude },
-      radius: 5000, // 5km radius
-      type: type,
-    };
-    service.nearbySearch(request, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-        setter(results);
-      }
-    });
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      // Reset state on open
-      setSuggestions(null);
-      setHospitals([]);
-      setPoliceStations([]);
-      fetchSuggestions();
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isMapLoaded && map && position) {
-      const service = new google.maps.places.PlacesService(map);
-      searchNearby(service, 'hospital', setHospitals);
-      searchNearby(service, 'police', setPoliceStations);
-    }
-  }, [isMapLoaded, map, position]);
 
   const fetchSuggestions = async () => {
     if (!position) {
@@ -131,23 +67,13 @@ export function SosModal({
     setIsLoading(false);
   };
 
-  // Define icons only when map is loaded to prevent runtime errors
-  const hospitalIcon = isMapLoaded ? {
-    path: google.maps.SymbolPath.CIRCLE,
-    fillColor: 'blue',
-    fillOpacity: 1,
-    strokeWeight: 0,
-    scale: 7,
-  } : undefined;
-
-  const policeIcon = isMapLoaded ? {
-    path: google.maps.SymbolPath.CIRCLE,
-    fillColor: 'red',
-    fillOpacity: 1,
-    strokeWeight: 0,
-    scale: 7,
-  } : undefined;
-
+  useEffect(() => {
+    if (isOpen) {
+      // Reset state on open
+      setSuggestions(null);
+      fetchSuggestions();
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -163,61 +89,7 @@ export function SosModal({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Map Section */}
-        <div className="my-4 space-y-2">
-          <h3 className="flex items-center gap-2 font-semibold text-primary">
-            <Map className="h-4 w-4" />
-            Nearby Help
-          </h3>
-          <div className="w-full h-[300px] rounded-lg overflow-hidden border">
-            {isMapLoaded && position ? (
-              <GoogleMap
-                mapContainerStyle={containerStyle}
-                center={{
-                  lat: position.latitude,
-                  lng: position.longitude,
-                }}
-                zoom={14}
-                options={mapOptions}
-                onLoad={(map) => setMap(map)}
-              >
-                <MarkerF
-                  position={{
-                    lat: position.latitude,
-                    lng: position.longitude,
-                  }}
-                  title="Your Location"
-                />
-                {hospitals.map((hospital) =>
-                  hospital.geometry?.location ? (
-                    <MarkerF
-                      key={hospital.place_id}
-                      position={hospital.geometry.location}
-                      icon={hospitalIcon}
-                      title={hospital.name}
-                    />
-                  ) : null
-                )}
-                {policeStations.map((station) =>
-                  station.geometry?.location ? (
-                    <MarkerF
-                      key={station.place_id}
-                      position={station.geometry.location}
-                      icon={policeIcon}
-                      title={station.name}
-                    />
-                  ) : null
-                )}
-              </GoogleMap>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-muted">
-                <Loader className="animate-spin text-muted-foreground" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="min-h-[150px] rounded-lg border bg-muted p-4">
+        <div className="min-h-[150px] rounded-lg border bg-muted p-4 my-4">
           {isLoading && (
             <div className="flex h-full flex-col items-center justify-center text-muted-foreground">
               <Loader className="mb-2 h-6 w-6 animate-spin" />
