@@ -52,6 +52,42 @@ function getDistance(
   return R * c; // in metres
 }
 
+const redZoneCircleOptions = {
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.8,
+    strokeWeight: 2,
+    fillColor: '#FF0000',
+    fillOpacity: 0.35,
+};
+
+const mapOptions = {
+    disableDefaultUI: true,
+    zoomControl: true,
+    clickableIcons: false,
+};
+
+const MapView = ({ position, zoom = 14 }: { position: Position, zoom?: number }) => (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={{ lat: position.latitude, lng: position.longitude }}
+      zoom={zoom}
+      options={mapOptions}
+    >
+      <MarkerF
+        position={{ lat: position.latitude, lng: position.longitude }}
+      />
+      {redZones.map((zone, index) => (
+        <CircleF
+          key={index}
+          center={zone.center}
+          radius={zone.radius}
+          options={redZoneCircleOptions}
+        />
+      ))}
+    </GoogleMap>
+  );
+
+
 export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProps) {
   const { user } = useUser();
   const [position, setPosition] = useState<Position | null>(null);
@@ -66,27 +102,6 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
       updateUserPosition(userId, newPosition);
     },
     2000 // Only update every 2 seconds
-  );
-
-  // Memoize map options to prevent re-renders
-  const mapOptions = useMemo(
-    () => ({
-      disableDefaultUI: true,
-      zoomControl: true,
-      clickableIcons: false,
-    }),
-    []
-  );
-
-  const redZoneCircleOptions = useMemo(
-    () => ({
-      strokeColor: '#FF0000',
-      strokeOpacity: 0.8,
-      strokeWeight: 2,
-      fillColor: '#FF0000',
-      fillOpacity: 0.35,
-    }),
-    []
   );
 
   // Geofencing logic
@@ -180,27 +195,6 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
     };
   }, [onPositionChange, user, debouncedUpdatePosition]);
 
-  const MapView = ({ zoom = 14 }: { zoom?: number }) => (
-    <GoogleMap
-      mapContainerStyle={containerStyle}
-      center={{ lat: position!.latitude, lng: position!.longitude }}
-      zoom={zoom}
-      options={mapOptions}
-    >
-      <MarkerF
-        position={{ lat: position!.latitude, lng: position!.longitude }}
-      />
-      {redZones.map((zone, index) => (
-        <CircleF
-          key={index}
-          center={zone.center}
-          radius={zone.radius}
-          options={redZoneCircleOptions}
-        />
-      ))}
-    </GoogleMap>
-  );
-
   const renderContent = () => {
     if (error) {
       return (
@@ -215,7 +209,7 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
       return (
         <div className="w-full h-full space-y-2 relative group">
           <div className="w-full h-full aspect-square">
-            <MapView />
+            <MapView position={position} />
           </div>
           <div className="absolute top-1 right-1">
             <Button
@@ -263,7 +257,7 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
         <DialogContent className="h-[90vh] w-[95vw] max-w-7xl p-2 md:p-4">
           {isMapLoaded && position && (
             <div className="w-full h-full">
-               <MapView zoom={15}/>
+               <MapView position={position} zoom={15}/>
             </div>
           )}
         </DialogContent>
