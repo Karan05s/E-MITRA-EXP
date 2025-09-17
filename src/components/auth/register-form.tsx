@@ -39,14 +39,17 @@ export function RegisterForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    // Generate a random 6-digit OTP for the prototype
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
     toast({
-      title: 'OTP Sent',
-      description: 'A verification code has been sent to your mobile device.',
+      title: 'OTP Sent (For Proto)',
+      description: `Your verification code is: ${otp}`,
     });
     router.push(
       `/verify?name=${encodeURIComponent(
         values.name
-      )}&mobile=${encodeURIComponent(values.mobile)}`
+      )}&mobile=${encodeURIComponent(values.mobile)}&otp=${otp}`
     );
   }
 

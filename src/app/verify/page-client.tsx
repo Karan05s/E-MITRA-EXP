@@ -11,11 +11,14 @@ import {
 } from '@/components/ui/card';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Terminal } from 'lucide-react';
 
 export default function VerifyPageClient() {
   const searchParams = useSearchParams();
   const name = searchParams.get('name');
   const mobile = searchParams.get('mobile');
+  const otp = searchParams.get('otp');
 
   return (
     <Card className="w-full max-w-md shadow-xl border-2">
@@ -33,11 +36,21 @@ export default function VerifyPageClient() {
         </div>
       </CardHeader>
       <CardContent>
-        {name && mobile ? (
-          <VerifyForm name={name} mobile={mobile} />
+        {name && mobile && otp ? (
+          <>
+            <Alert className="mb-4">
+              <Terminal className="h-4 w-4" />
+              <AlertDescription>
+                For prototype purposes, your OTP is: <span className="font-bold">{otp}</span>
+              </AlertDescription>
+            </Alert>
+            <VerifyForm name={name} mobile={mobile} otp={otp} />
+          </>
         ) : (
           <div className="text-center">
-            <p className="text-sm text-destructive">Missing user details.</p>
+            <p className="text-sm text-destructive">
+              Missing user details or OTP.
+            </p>
             <Link
               href="/register"
               className="text-sm text-primary hover:underline"

@@ -29,9 +29,10 @@ const formSchema = z.object({
 interface VerifyFormProps {
   name: string;
   mobile: string;
+  otp: string;
 }
 
-export function VerifyForm({ name, mobile }: VerifyFormProps) {
+export function VerifyForm({ name, mobile, otp }: VerifyFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -42,8 +43,15 @@ export function VerifyForm({ name, mobile }: VerifyFormProps) {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // In a real app, we'd verify the OTP with a backend. Here we mock success.
-    console.log('Verifying OTP:', values.otp);
+    // Verify the OTP
+    if (values.otp !== otp) {
+      form.setError('otp', {
+        type: 'manual',
+        message: 'Incorrect OTP. Please try again.',
+      });
+      return;
+    }
+
     const newUser: User = {
       id: Math.random().toString().slice(2, 14),
       name,
