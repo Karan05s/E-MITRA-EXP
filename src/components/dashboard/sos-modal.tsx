@@ -130,22 +130,24 @@ export function SosModal({
     }
     setIsLoading(false);
   };
-  
-  const hospitalIcon = {
+
+  // Define icons only when map is loaded to prevent runtime errors
+  const hospitalIcon = isMapLoaded ? {
     path: google.maps.SymbolPath.CIRCLE,
     fillColor: 'blue',
     fillOpacity: 1,
     strokeWeight: 0,
     scale: 7,
-  };
+  } : undefined;
 
-  const policeIcon = {
+  const policeIcon = isMapLoaded ? {
     path: google.maps.SymbolPath.CIRCLE,
     fillColor: 'red',
     fillOpacity: 1,
     strokeWeight: 0,
     scale: 7,
-  };
+  } : undefined;
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
