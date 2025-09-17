@@ -41,7 +41,7 @@ export default function VerifyPageClient() {
             <Alert className="mb-4">
               <Terminal className="h-4 w-4" />
               <AlertDescription>
-                For prototype purposes, your OTP is: <span className="font-bold">{otp}</span>
+                Check the in-app notification for your OTP.
               </AlertDescription>
             </Alert>
             <VerifyForm name={name} mobile={mobile} otp={otp} />
