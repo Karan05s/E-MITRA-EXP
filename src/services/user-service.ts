@@ -1,8 +1,7 @@
-// This is a mock user service to simulate a backend database.
-// In a real application, this would make secure API calls to a server.
 'use server';
 
 import type { User, Position } from '@/types';
+import { getLoggedInUserFromLocalStorage } from './local-storage-service';
 
 // Simulate a database of users and their last known locations.
 const mockUserDatabase: Record<string, { user: User; position: Position }> = {
@@ -51,22 +50,15 @@ export async function getUserById(
 
   // To make it feel more dynamic, let's check the localStorage of the current browser.
   // This is a HACK for the prototype to allow tracking the currently logged-in user.
-  // This would NOT work in a real app and is not a secure practice.
-  try {
-     const item = localStorage.getItem('e-mitra-user');
-     if (item) {
-       const loggedInUser: User = JSON.parse(item);
-       if (loggedInUser.id === userId) {
-         // For the prototype, we can't get their real-time location,
-         // so we'll return a static location as if we looked it up.
-         return {
-           user: loggedInUser,
-           position: { latitude: 23.2599, longitude: 77.4126 } // Bhopal center
-         }
-       }
-     }
-  } catch (e) {
-    // localStorage is not available on the server, so this will fail, which is fine.
+  // In a real app this would query a central database.
+  const loggedInUser = await getLoggedInUserFromLocalStorage();
+  if (loggedInUser && loggedInUser.id === userId) {
+      return {
+          user: loggedInUser,
+          // For the prototype, we can't get their real-time location,
+          // so we'll return a static location as if we looked it up.
+          position: { latitude: 23.2599, longitude: 77.4126 } // Bhopal center
+      }
   }
 
 
