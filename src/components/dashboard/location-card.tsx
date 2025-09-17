@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Loader, AlertTriangle } from 'lucide-react';
+import { MapPin, Loader, AlertTriangle, Expand } from 'lucide-react';
 import type { Position, User } from '@/types';
 import {
   GoogleMap,
@@ -14,6 +14,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/hooks/use-user';
 import { updateUserPosition } from '@/app/actions';
 import { useDebouncedCallback } from 'use-debounce';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface LocationCardProps {
   onPositionChange: (position: Position | null) => void;
@@ -51,6 +58,7 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const [activeToastId, setActiveToastId] = useState<string | null>(null);
+  const [isMapExpanded, setMapExpanded] = useState(false);
 
   // Debounce the database update to avoid excessive writes
   const debouncedUpdatePosition = useDebouncedCallback(
@@ -172,6 +180,27 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
     };
   }, [onPositionChange, user, debouncedUpdatePosition]);
 
+  const MapView = ({ zoom = 14 }: { zoom?: number }) => (
+    <GoogleMap
+      mapContainerStyle={containerStyle}
+      center={{ lat: position!.latitude, lng: position!.longitude }}
+      zoom={zoom}
+      options={mapOptions}
+    >
+      <MarkerF
+        position={{ lat: position!.latitude, lng: position!.longitude }}
+      />
+      {redZones.map((zone, index) => (
+        <CircleF
+          key={index}
+          center={zone.center}
+          radius={zone.radius}
+          options={redZoneCircleOptions}
+        />
+      ))}
+    </GoogleMap>
+  );
+
   const renderContent = () => {
     if (error) {
       return (
@@ -184,26 +213,20 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
     }
     if (isMapLoaded && position) {
       return (
-        <div className="w-full h-full space-y-2">
+        <div className="w-full h-full space-y-2 relative group">
           <div className="w-full h-full aspect-square">
-            <GoogleMap
-              mapContainerStyle={containerStyle}
-              center={{ lat: position.latitude, lng: position.longitude }}
-              zoom={14}
-              options={mapOptions}
+            <MapView />
+          </div>
+          <div className="absolute top-1 right-1">
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setMapExpanded(true)}
+              title="Expand Map"
             >
-              <MarkerF
-                position={{ lat: position.latitude, lng: position.longitude }}
-              />
-              {redZones.map((zone, index) => (
-                <CircleF
-                  key={index}
-                  center={zone.center}
-                  radius={zone.radius}
-                  options={redZoneCircleOptions}
-                />
-              ))}
-            </GoogleMap>
+              <Expand className="h-4 w-4" />
+            </Button>
           </div>
           <div className="text-center">
             <div className="font-mono text-sm text-muted-foreground">
@@ -225,14 +248,26 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
   };
 
   return (
-    <Card className="shadow-lg">
-      <CardHeader className="flex-row items-center justify-center space-x-2 pb-4">
-        <MapPin className="h-5 w-5 text-primary" />
-        <CardTitle className="text-xl font-headline">Live Location</CardTitle>
-      </CardHeader>
-      <CardContent className="flex h-[300px] md:h-auto md:aspect-square items-center justify-center p-2">
-        {renderContent()}
-      </CardContent>
-    </Card>
+    <>
+      <Card className="shadow-lg">
+        <CardHeader className="flex-row items-center justify-center space-x-2 pb-4">
+          <MapPin className="h-5 w-5 text-primary" />
+          <CardTitle className="text-xl font-headline">Live Location</CardTitle>
+        </CardHeader>
+        <CardContent className="flex h-[300px] md:h-auto md:aspect-square items-center justify-center p-2">
+          {renderContent()}
+        </CardContent>
+      </Card>
+
+      <Dialog open={isMapExpanded} onOpenChange={setMapExpanded}>
+        <DialogContent className="h-[90vh] w-[95vw] max-w-7xl p-2 md:p-4">
+          {isMapLoaded && position && (
+            <div className="w-full h-full">
+               <MapView zoom={15}/>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
