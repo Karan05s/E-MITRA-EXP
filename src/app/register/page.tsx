@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import Link from 'next/link';
 
 export default function RegisterPage() {
   return (
@@ -25,6 +26,15 @@ export default function RegisterPage() {
         </CardHeader>
         <CardContent>
           <RegisterForm />
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Are you an administrator?{' '}
+            <Link
+              href="/admin"
+              className="font-semibold text-primary hover:underline"
+            >
+              Go to Admin Panel
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </div>
