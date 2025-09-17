@@ -97,6 +97,11 @@ export function LocationCard({ onPositionChange }: LocationCardProps) {
           duration: Infinity, // Keep toast open until dismissed
         });
         setActiveToastId(id);
+        
+        // Vibrate 3 times if the API is supported
+        if (navigator.vibrate) {
+          navigator.vibrate([200, 100, 200, 100, 200]);
+        }
       }
     } else {
       if (activeToastId) {
