@@ -27,7 +27,11 @@ const formSchema = z.object({
     }),
 });
 
-export function RegisterForm() {
+interface RegisterFormProps {
+  setAnimationSpeed: (speed: 'slow' | 'fast') => void;
+}
+
+export function RegisterForm({ setAnimationSpeed }: RegisterFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -39,6 +43,10 @@ export function RegisterForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
+    // Speed up animation
+    setAnimationSpeed('fast');
+    setTimeout(() => setAnimationSpeed('slow'), 1000); // Revert after 1 second
+
     // Generate a random 6-digit OTP for the prototype
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
