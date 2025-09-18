@@ -8,7 +8,7 @@ interface RotatingArtBackgroundProps {
 
 export function RotatingArtBackground({ animationSpeed }: RotatingArtBackgroundProps) {
   return (
-    <div className="absolute inset-0 z-0 flex items-center justify-center">
+    <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden">
       <svg
         viewBox="0 0 200 200"
         xmlns="http://www.w3.org/2000/svg"
@@ -35,6 +35,13 @@ export function RotatingArtBackground({ animationSpeed }: RotatingArtBackgroundP
         <use href="#tribal-arm" transform="rotate(180, 100, 100)" />
         <use href="#tribal-arm" transform="rotate(240, 100, 100)" />
         <use href="#tribal-arm" transform="rotate(300, 100, 100)" />
+        
+        {/* Additional Decorative Circles */}
+        <circle cx="30" cy="30" r="8" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="2 4" />
+        <circle cx="170" cy="30" r="5" fill="currentColor" opacity="0.3" />
+        <circle cx="30" cy="170" r="10" fill="none" stroke="currentColor" strokeWidth="0.5" />
+        <circle cx="170" cy="170" r="12" fill="currentColor" opacity="0.1" />
+
 
         {/* Outer Ring Patterns */}
         <circle

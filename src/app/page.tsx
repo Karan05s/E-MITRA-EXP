@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Position, EmergencyContact } from '@/types';
 import { UserIDCard } from '@/components/dashboard/user-id-card';
 import { useJsApiLoader } from '@react-google-maps/api';
+import { RotatingArtBackground } from '@/components/auth/rotating-art-background';
 
 const LIBRARIES = ['places'];
 const EMERGENCY_CONTACTS_KEY = 'e-mitra-emergency-contacts';
@@ -76,27 +77,30 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="flex min-h-screen flex-col bg-background">
-        <Header
-          user={user}
-          onLogout={logout}
-          onProfileClick={() => setProfileSidebarOpen(true)}
-        />
-        <main className="flex-grow p-4 md:p-6">
-          <div className="mx-auto max-w-4xl space-y-6">
-            <UserIDCard user={user} />
-            <LocationCard 
-              onPositionChange={setPosition} 
-              isMapLoaded={isMapLoaded} 
-            />
-          </div>
-        </main>
-        <ActionsBar
-          onSos={() => setSosOpen(true)}
-          onSuggestions={() => setSuggestionsOpen(true)}
-          onTranslate={() => setTranslationOpen(true)}
-          onChat={() => setChatOpen(true)}
-        />
+      <div className="relative flex min-h-screen flex-col bg-background overflow-hidden">
+        <RotatingArtBackground animationSpeed="slow" />
+        <div className="relative z-10 flex flex-col flex-grow bg-background/80 backdrop-blur-sm">
+          <Header
+            user={user}
+            onLogout={logout}
+            onProfileClick={() => setProfileSidebarOpen(true)}
+          />
+          <main className="flex-grow p-4 md:p-6">
+            <div className="mx-auto max-w-4xl space-y-6">
+              <UserIDCard user={user} />
+              <LocationCard 
+                onPositionChange={setPosition} 
+                isMapLoaded={isMapLoaded} 
+              />
+            </div>
+          </main>
+          <ActionsBar
+            onSos={() => setSosOpen(true)}
+            onSuggestions={() => setSuggestionsOpen(true)}
+            onTranslate={() => setTranslationOpen(true)}
+            onChat={() => setChatOpen(true)}
+          />
+        </div>
         {/* Modals & Sidebars */}
         <SosModal
           isOpen={isSosOpen}
