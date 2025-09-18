@@ -35,33 +35,6 @@ export function RotatingArtBackground({ animationSpeed }: RotatingArtBackgroundP
         <use href="#tribal-arm" transform="rotate(180, 100, 100)" />
         <use href="#tribal-arm" transform="rotate(240, 100, 100)" />
         <use href="#tribal-arm" transform="rotate(300, 100, 100)" />
-        
-        {/* Additional Decorative Circles */}
-        <circle cx="30" cy="30" r="8" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="2 4" />
-        <circle cx="170" cy="30" r="5" fill="currentColor" opacity="0.3" />
-        <circle cx="30" cy="170" r="10" fill="none" stroke="currentColor" strokeWidth="0.5" />
-        <circle cx="170" cy="170" r="12" fill="currentColor" opacity="0.1" />
-
-
-        {/* Outer Ring Patterns */}
-        <circle
-          cx="100"
-          cy="100"
-          r="80"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeDasharray="5 15"
-        />
-        <circle
-          cx="100"
-          cy="100"
-          r="90"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="4"
-          opacity="0.5"
-        />
       </svg>
     </div>
   );
