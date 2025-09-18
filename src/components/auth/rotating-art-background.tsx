@@ -13,7 +13,7 @@ export function RotatingArtBackground({ animationSpeed }: RotatingArtBackgroundP
         viewBox="0 0 200 200"
         xmlns="http://www.w3.org/2000/svg"
         className={cn(
-          'w-full h-full max-w-[1000px] max-h-[1000px] text-primary/10 opacity-60',
+          'w-full h-full max-w-[1000px] max-h-[1000px] text-primary/20 opacity-80',
           animationSpeed === 'slow' ? 'animate-spin-slow' : 'animate-spin-fast'
         )}
       >
