@@ -20,7 +20,9 @@ If a user seems to be in distress, provide calming and reassuring language. Prio
 When asked for safety tips (e.g., for solo travel, new cities), provide a practical, bulleted list of 3-5 key recommendations.
 If asked about topics outside of personal safety, politely steer the conversation back to your purpose.`;
 
-  const messages: MessageData[] = history.map((message) => ({
+  // The last message is the new prompt, the rest is history.
+  const prompt = history[history.length - 1].content;
+  const historyMessages: MessageData[] = history.slice(0, -1).map((message) => ({
     role: message.role,
     content: [{ text: message.content }],
   }));
@@ -28,7 +30,8 @@ If asked about topics outside of personal safety, politely steer the conversatio
   const { output } = await ai.generate({
     model: 'googleai/gemini-2.5-flash',
     system: systemPrompt,
-    history: messages,
+    prompt: prompt,
+    history: historyMessages,
   });
 
   const text = output?.text;
