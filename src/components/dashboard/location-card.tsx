@@ -60,28 +60,6 @@ const mapOptions = {
     clickableIcons: false,
 };
 
-const MapView = ({ position, zoom = 14 }: { position: Position, zoom?: number }) => (
-    <GoogleMap
-      mapContainerStyle={containerStyle}
-      center={{ lat: position.latitude, lng: position.longitude }}
-      zoom={zoom}
-      options={mapOptions}
-    >
-      <MarkerF
-        position={{ lat: position.latitude, lng: position.longitude }}
-      />
-      {redZones.map((zone, index) => (
-        <CircleF
-          key={index}
-          center={zone.center}
-          radius={zone.radius}
-          options={redZoneCircleOptions}
-        />
-      ))}
-    </GoogleMap>
-  );
-
-
 export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProps) {
   const { user } = useUser();
   const [position, setPosition] = useState<Position | null>(null);
@@ -202,7 +180,24 @@ export function LocationCard({ onPositionChange, isMapLoaded }: LocationCardProp
       return (
         <div className="w-full h-full flex flex-col space-y-2">
           <div className="w-full aspect-square">
-            <MapView position={position} />
+            <GoogleMap
+              mapContainerStyle={containerStyle}
+              center={{ lat: position.latitude, lng: position.longitude }}
+              zoom={14}
+              options={mapOptions}
+            >
+              <MarkerF
+                position={{ lat: position.latitude, lng: position.longitude }}
+              />
+              {redZones.map((zone, index) => (
+                <CircleF
+                  key={index}
+                  center={zone.center}
+                  radius={zone.radius}
+                  options={redZoneCircleOptions}
+                />
+              ))}
+            </GoogleMap>
           </div>
           <div className="text-center">
             <div className="font-mono text-sm text-muted-foreground">
