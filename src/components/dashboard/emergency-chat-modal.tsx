@@ -135,12 +135,17 @@ export function EmergencyChatModal({
           if (status === window.google.maps.DirectionsStatus.OK && result) {
             setDirections(result);
           } else {
-            console.error(`error fetching directions ${result}`);
+            console.error(`Error fetching directions: ${status}`);
+             toast({
+              variant: 'destructive',
+              title: 'Map Error',
+              description: 'Could not calculate the route to the destination.',
+            });
           }
         }
       );
     }
-  }, [messages, position, isMapLoaded]);
+  }, [messages, position, isMapLoaded, toast]);
 
 
   // Auto-scroll to bottom

@@ -69,8 +69,8 @@ export async function emergencyChat(
     throw new Error('The last message must be from the user.');
   }
 
-  const prompt = lastUserMessage.content;
   // Convert the history from the frontend into the format Genkit expects.
+  // This was the primary source of the error.
   const historyMessages = history.slice(0, -1).map(msg => ({
     role: msg.role,
     content: [{ text: msg.content }]
@@ -82,7 +82,7 @@ export async function emergencyChat(
       - Be calm, reassuring, and provide clear, concise, and actionable advice.
       ${
         userPosition
-          ? `- If the user asks for help, a police station, a hospital, or any safe place, you MUST use the 'findNearbyPlaces' tool to find the nearest one. Pass the user's location to the tool.
+          ? `- The user's location is available. If the user asks for help, a police station, a hospital, or any safe place, you MUST use the 'findNearbyPlaces' tool to find the nearest one. Pass the user's location to the tool.
       - When you use the tool, briefly mention the result to the user in a caring tone, but do not just repeat the tool's output. For example: "I found a police station nearby for you. It's called [Name] and it's about a [Duration] walk away. I'm showing you the map now. Please head there safely."
       - If the tool returns no results, inform the user calmly that you couldn't find a place nearby and suggest they call emergency services (like 112 in India).`
           : `- The user's location is not available. You CANNOT find nearby places for them.
@@ -92,11 +92,11 @@ export async function emergencyChat(
 
 
   const llmResponse = await ai.generate({
-    model: 'googleai/gemini-2.5-flash',
-    prompt: prompt,
+    model: 'googleai/gemini-pro',
+    prompt: lastUserMessage.content,
     history: historyMessages,
+    tools: userPosition ? [findNearbyPlacesTool] : [],
     toolConfig: userPosition ? {
-      tools: [findNearbyPlacesTool],
       context: {
         userPosition: {
           latitude: userPosition.latitude,
@@ -110,12 +110,21 @@ export async function emergencyChat(
   const toolRequest = llmResponse.toolRequest();
   if (toolRequest) {
     const toolResult = await toolRequest.run();
-    if (toolResult && toolResult.outputs.length > 0) {
+    // The tool can sometimes return nothing, so we must handle that case.
+    if (toolResult && toolResult.outputs.length > 0 && toolResult.outputs[0]) {
       // The tool returns a single result, so we take the first one.
       return {
         type: 'tool-result',
         result: toolResult.outputs[0] as any,
       };
+    } else {
+        // If the tool fails or returns no results, generate a text response.
+         const fallbackResponse = await ai.generate({
+            model: 'googleai/gemini-pro',
+            prompt: `The tool to find nearby places failed. Inform the user calmly that you couldn't find a place nearby and suggest they call emergency services (like 112 in India). Original query was: "${lastUserMessage.content}"`,
+            system: systemPrompt
+        });
+        return { type: 'text', content: fallbackResponse.text };
     }
   }
 
