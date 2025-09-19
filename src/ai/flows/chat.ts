@@ -27,8 +27,10 @@ If asked about topics outside of personal safety, politely steer the conversatio
     content: [{ text: message.content }],
   }));
 
-  // Check for the specific hardcoded question.
-  if (prompt.trim().toLowerCase() === 'what are some tips for solo travelers?') {
+  const cleanPrompt = prompt.trim().toLowerCase();
+
+  // Check for the specific hardcoded questions.
+  if (cleanPrompt === 'what are some tips for solo travelers?') {
     return `Solo travel offers a unique chance for personal growth and freedom. To make the most of your trip, focus on three key areas:
 
 1. **Smart Planning**: Research your destination, book essential accommodations and flights in advance, and inform a trusted person of your itinerary. Keep digital copies of important documents and notify your bank about your travel plans.
@@ -36,6 +38,22 @@ If asked about topics outside of personal safety, politely steer the conversatio
 2. **Safety First**: Always trust your gut instincts. Stay aware of your surroundings, be cautious with alcohol, and avoid looking like a vulnerable tourist. Use a money belt or secure bag for your valuables.
 
 3. **Embrace the Experience**: Leave room for spontaneity. Be open to meeting new people through tours or social activities, but also enjoy the solitude. Don't be afraid to dine alone and fully immerse yourself in the local culture.`;
+  } else if (cleanPrompt === 'how do i stay safe in a new city?') {
+    return `**Be Aware**: Stay alert, avoid distractions, and research unsafe areas beforehand.
+
+**Secure Valuables**: Keep cash and documents safe. Don't flash expensive items.
+
+**Blend In**: Dress like a local and avoid looking like an obvious tourist.
+
+**Use Reputable Transport**: Opt for licensed taxis or trusted ride-share services.`;
+  } else if (cleanPrompt === 'what should i do if i feel unsafe?') {
+    return `**Trust Your Gut**: If a situation feels wrong, it is.
+
+**Remove Yourself**: Calmly walk away and enter a public, crowded place like a store or cafe.
+
+**Make a Scene**: If necessary, yell for help to draw attention and deter an aggressor.
+
+**Don't Resist**: Your safety is more important than your belongings. In a mugging, hand over what is demanded.`;
   }
 
   const { output } = await ai.generate({
