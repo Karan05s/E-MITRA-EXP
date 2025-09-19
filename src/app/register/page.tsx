@@ -26,7 +26,7 @@ export default function RegisterPage() {
             <CardTitle className="font-headline text-2xl">
               Welcome to E-Mitra
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-base">
               Safer Travel Richer Culture
             </CardDescription>
           </div>
