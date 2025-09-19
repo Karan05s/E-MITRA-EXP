@@ -27,7 +27,7 @@ export default function RegisterPage() {
               Welcome to E-Mitra
             </CardTitle>
             <CardDescription>
-              Create an account to get started.
+              Safe Travel Richer Culture
             </CardDescription>
           </div>
         </CardHeader>
