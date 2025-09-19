@@ -96,7 +96,7 @@ export function EmergencyChatModal({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-2xl grid-rows-[auto_1fr_auto] h-[85vh] max-h-[800px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="font-headline text-xl">Emergency Assistant</DialogTitle>
+          <DialogTitle className="font-headline text-xl">MITRA</DialogTitle>
           <DialogDescription>
             This AI is for guidance only. In a life-threatening emergency, please contact local authorities immediately.
           </DialogDescription>
