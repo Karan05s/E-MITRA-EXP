@@ -17,8 +17,7 @@ import {
   ShieldAlert,
   Users,
   Share2,
-  Clipboard,
-  ClipboardCheck,
+  MessageSquare,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getSafetySuggestions } from '@/app/actions';
@@ -45,7 +44,6 @@ export function SosModal({
   const [suggestions, setSuggestions] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
   const fetchSuggestions = async () => {
@@ -75,7 +73,7 @@ export function SosModal({
 
   const handleShareLocation = () => {
     if (!position) {
-       toast({
+      toast({
         variant: 'destructive',
         title: 'Location Not Available',
         description: 'Cannot share location because it is currently unavailable.',
@@ -85,21 +83,48 @@ export function SosModal({
 
     const mapUrl = `https://www.google.com/maps?q=${position.latitude},${position.longitude}`;
     const message = `Emergency! This is ${user.name}. I need help. My current location is: ${mapUrl}`;
-    
+
     navigator.clipboard.writeText(message);
-    setCopied(true);
     toast({
       title: 'Message Copied to Clipboard!',
-      description: 'Quickly paste this message into a chat with your trusted contacts.',
+      description: 'Quickly paste this message into any messaging app.',
     });
-    setTimeout(() => setCopied(false), 3000);
   };
+
+  const handleSendSms = () => {
+     if (!position) {
+      toast({
+        variant: 'destructive',
+        title: 'Location Not Available',
+        description: 'Cannot share location because it is currently unavailable.',
+      });
+      return;
+    }
+     if (emergencyContacts.length === 0) {
+      toast({
+        variant: 'destructive',
+        title: 'No Emergency Contacts',
+        description: 'Please add emergency contacts in your profile first.',
+      });
+      return;
+    }
+
+    const mapUrl = `https://www.google.com/maps?q=${position.latitude},${position.longitude}`;
+    const message = `Emergency! This is ${user.name}. I need help. My current location is: ${mapUrl}`;
+    
+    // The 'sms:' URI scheme. Note: On iOS, the body parameter is not supported for multiple recipients.
+    // On Android, this should work as expected.
+    const recipients = emergencyContacts.map(c => c.phone).join(',');
+    const smsUri = `sms:${recipients}?body=${encodeURIComponent(message)}`;
+
+    window.location.href = smsUri;
+  };
+
 
   useEffect(() => {
     if (isOpen) {
       // Reset state on open
       setSuggestions(null);
-      setCopied(false);
       fetchSuggestions();
     }
   }, [isOpen]);
@@ -113,26 +138,32 @@ export function SosModal({
             SOS - Emergency Mode
           </DialogTitle>
           <DialogDescription>
-            Stay calm. Share your location and use the suggestions and contacts below.
+            Stay calm. Use the actions below to contact help and follow the safety suggestions.
           </DialogDescription>
         </DialogHeader>
-        
-        <div className='my-4'>
-           <Button onClick={handleShareLocation} className='w-full' variant="secondary" size="lg">
-              {copied ? (
-                <>
-                  <ClipboardCheck className='h-5 w-5' />
-                  <span>Message Copied!</span>
-                </>
-              ) : (
-                 <>
-                  <Share2 className='h-5 w-5' />
-                  <span>Share Location with Contacts</span>
-                </>
-              )}
-           </Button>
-        </div>
 
+        <div className="my-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Button
+            onClick={handleSendSms}
+            className="w-full h-auto py-3"
+            variant="secondary"
+            size="lg"
+            disabled={emergencyContacts.length === 0 || !position}
+          >
+            <MessageSquare className="h-5 w-5 mr-2" />
+            Send SMS to Contacts
+          </Button>
+          <Button
+            onClick={handleShareLocation}
+            className="w-full h-auto py-3"
+            variant="outline"
+            size="lg"
+            disabled={!position}
+          >
+            <Share2 className="h-5 w-5 mr-2" />
+            Copy Help Message
+          </Button>
+        </div>
 
         <div className="min-h-[150px] rounded-lg border bg-muted p-4">
           {isLoading && (
