@@ -41,6 +41,7 @@ const containerStyle = {
 const mapOptions = {
   disableDefaultUI: true,
   zoomControl: true,
+  fullscreenControl: true,
   clickableIcons: false,
 };
 
@@ -108,7 +109,8 @@ export default function AdminPage() {
 
 
   const handleTrackUser = async () => {
-    if (!userId.trim()) {
+    const cleanUserId = userId.replace(/\s/g, '');
+    if (!cleanUserId) {
       setError('Please enter a User ID.');
       return;
     }
@@ -117,7 +119,7 @@ export default function AdminPage() {
     setTrackedUser(null);
     setTrackedPosition(null);
 
-    const { user, position } = await getUserById(userId.replace(/\s/g, ''));
+    const { user, position } = await getUserById(cleanUserId);
 
     if (user && position) {
       setTrackedUser(user);
