@@ -70,9 +70,12 @@ export async function emergencyChat(
   }
 
   const prompt = lastUserMessage.content;
-  const historyMessages = history.slice(0, -1);
+  // Convert the history from the frontend into the format Genkit expects.
+  const historyMessages = history.slice(0, -1).map(msg => ({
+    role: msg.role,
+    content: [{ text: msg.content }]
+  }));
 
-  const tools = userPosition ? [findNearbyPlacesTool] : [];
 
   const systemPrompt = `You are an emergency assistant chatbot for tourists called "E-Mitra".
       - Your primary goal is to help users who are in distress or feel unsafe.
@@ -91,12 +94,9 @@ export async function emergencyChat(
   const llmResponse = await ai.generate({
     model: 'googleai/gemini-2.5-flash',
     prompt: prompt,
-    history: historyMessages.map(msg => ({
-      role: msg.role,
-      content: [{ text: msg.content }]
-    })),
-    tools: tools,
+    history: historyMessages,
     toolConfig: userPosition ? {
+      tools: [findNearbyPlacesTool],
       context: {
         userPosition: {
           latitude: userPosition.latitude,
@@ -110,7 +110,7 @@ export async function emergencyChat(
   const toolRequest = llmResponse.toolRequest();
   if (toolRequest) {
     const toolResult = await toolRequest.run();
-    if (toolResult) {
+    if (toolResult && toolResult.outputs.length > 0) {
       // The tool returns a single result, so we take the first one.
       return {
         type: 'tool-result',
