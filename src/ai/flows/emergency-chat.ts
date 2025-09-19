@@ -41,8 +41,6 @@ const findNearbyPlacesTool = ai.defineTool(
     }).nullable(),
   },
   async (input) => {
-    // This check should ideally not be needed if the AI respects the tool's availability,
-    // but it's a good safeguard.
     if (!input.userPosition) return null;
     return findNearbyPlaces(input.placeType, input.userPosition);
   }
@@ -90,7 +88,6 @@ export async function emergencyChat(
       }
       - For general conversation, keep your responses brief and focused on safety.`;
 
-
   const llmResponse = await ai.generate({
     model: 'googleai/gemini-pro',
     prompt: lastUserMessage.content,
@@ -121,8 +118,8 @@ export async function emergencyChat(
         // If the tool fails or returns no results, generate a text response.
          const fallbackResponse = await ai.generate({
             model: 'googleai/gemini-pro',
-            prompt: `The tool to find nearby places failed. Inform the user calmly that you couldn't find a place nearby and suggest they call emergency services (like 112 in India). Original query was: "${lastUserMessage.content}"`,
-            system: systemPrompt
+            prompt: `The tool to find nearby places failed or found nothing. Inform the user calmly that you couldn't find a place nearby and suggest they call emergency services (like 112 in India). The user's original message was: "${lastUserMessage.content}"`,
+            system: systemPrompt,
         });
         return { type: 'text', content: fallbackResponse.text };
     }
