@@ -24,3 +24,9 @@ export interface IncidentReport {
   description: string;
   location: string;
 }
+
+export interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}

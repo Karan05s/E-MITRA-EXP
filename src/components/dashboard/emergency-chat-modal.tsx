@@ -1,297 +1,172 @@
 'use client';
-
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
-import {
-  MessageCircle,
-  Loader,
-  AlertTriangle,
-  Send,
-  MapPin,
-  Bot,
-  User,
-  ExternalLink,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getEmergencyChatResponse } from '@/app/actions';
-import type { Position, ChatMessage } from '@/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Send, Loader2, User, Bot } from 'lucide-react';
+import { runEmergencyGuidanceChat } from '@/app/actions';
+import type { Message } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { ScrollArea } from '../ui/scroll-area';
-import { cn } from '@/lib/utils';
-import {
-  GoogleMap,
-  MarkerF,
-  DirectionsRenderer,
-} from '@react-google-maps/api';
-
-const containerStyle = {
-  width: '100%',
-  height: '100%',
-};
-
-const mapOptions = {
-    disableDefaultUI: true,
-    zoomControl: true,
-    clickableIcons: false,
-};
-
-const suggestedPrompts = [
-  'I need help, I feel unsafe.',
-  'Find the nearest police station.',
-  'Where is the closest hospital?',
-  'What should I do if I\'m being followed?',
-];
 
 interface EmergencyChatModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  position: Position | null;
-  isMapLoaded: boolean;
 }
 
 export function EmergencyChatModal({
   isOpen,
   onOpenChange,
-  position,
-  isMapLoaded,
 }: EmergencyChatModalProps) {
-  const { toast } = useToast();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  const handleSendMessage = useCallback(async (messageText: string) => {
-    const trimmedInput = messageText.trim();
-    if (!trimmedInput) {
-      return;
-    }
-
-    const newMessages: ChatMessage[] = [
-      ...messages,
-      { role: 'user', content: trimmedInput },
-    ];
-    setMessages(newMessages);
-    setIsLoading(true);
-    setInput('');
-    setDirections(null); // Clear previous directions
-
-    const result = await getEmergencyChatResponse({
-      history: newMessages,
-      userPosition: position,
-    });
-
-    setIsLoading(false);
-
-    if (result.success && result.data) {
-      if (result.data.type === 'text') {
-        setMessages([
-          ...newMessages,
-          { role: 'model', content: result.data.content },
-        ]);
-      } else if (result.data.type === 'tool-result') {
-        const place = result.data.result;
-        setMessages([
-          ...newMessages,
-          {
-            role: 'model',
-            content: `I've found a route to ${place.name}. It's about ${place.distanceText} away.`,
-            toolResult: place,
-          },
-        ]);
-      }
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Chat Error',
-        description:
-          result.error || 'Failed to get a response. Please try again.',
-      });
-      // Revert optimistic update
-      setMessages(messages);
-    }
-  }, [messages, position, toast]);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Effect to handle rendering directions
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    if (lastMessage?.role === 'model' && lastMessage.toolResult && position && isMapLoaded) {
-      const directionsService = new window.google.maps.DirectionsService();
-      directionsService.route(
-        {
-          origin: new window.google.maps.LatLng(position.latitude, position.longitude),
-          destination: new window.google.maps.LatLng(lastMessage.toolResult.location.lat, lastMessage.toolResult.location.lng),
-          travelMode: window.google.maps.TravelMode.WALKING,
-        },
-        (result, status) => {
-          if (status === window.google.maps.DirectionsStatus.OK && result) {
-            setDirections(result);
-          } else {
-            console.error(`Error fetching directions: ${status}`);
-             toast({
-              variant: 'destructive',
-              title: 'Map Error',
-              description: 'Could not calculate the route to the destination.',
-            });
-          }
-        }
-      );
-    }
-  }, [messages, position, isMapLoaded, toast]);
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
 
-  // Auto-scroll to bottom
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
-      if (viewport) {
-        viewport.scrollTop = viewport.scrollHeight;
-      }
+    if (isOpen && messages.length === 0) {
+      // Add initial greeting message
+      const initialMessage: Message = {
+        id: 'initial',
+        role: 'assistant',
+        content: "Hello! I'm your personal safety assistant. How can I help you today? You can ask me about safety concerns, local risks, or for advice in an emergency."
+      };
+      setMessages([initialMessage]);
     }
-  }, [messages, isLoading]);
-  
-  useEffect(() => {
-    // Reset state when modal is closed
-    if (!isOpen) {
+     if (!isOpen) {
       setMessages([]);
       setInput('');
-      setIsLoading(false);
-      setDirections(null);
+      setLoading(false);
     }
-  }, [isOpen]);
+  }, [isOpen, messages.length]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input,
+    };
+    setMessages((prev) => [...prev, userMessage]);
+    const currentInput = input;
+    setInput('');
+    setLoading(true);
+
+    try {
+      const response = await runEmergencyGuidanceChat({ query: currentInput });
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: response.response,
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to get a response. Please check your connection and try again.',
+      });
+      // Revert user message on error
+      setMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] flex flex-col p-0 gap-0">
+      <DialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-2xl grid-rows-[auto_1fr_auto] h-[85vh] max-h-[800px] flex flex-col p-0">
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="flex items-center gap-2">
-            <MessageCircle className="text-primary" />
-            Emergency Assistant
-          </DialogTitle>
+          <DialogTitle className="font-headline text-xl">Emergency Assistant</DialogTitle>
           <DialogDescription>
-            Ask for help or directions to a safe place. Your live
-            location will be used if available.
+            This AI is for guidance only. In a life-threatening emergency, please contact local authorities immediately.
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-grow" ref={scrollAreaRef}>
-          <div className="space-y-4 p-6">
-            {messages.map((message, index) => (
+        <ScrollArea className="flex-grow px-6">
+          <div className="space-y-4 py-4">
+            {messages.map((message) => (
               <div
-                key={index}
-                className={cn(
-                  'flex items-start gap-3',
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                )}
+                key={message.id}
+                className={`flex items-start gap-3 ${
+                  message.role === 'user' ? 'justify-end' : ''
+                }`}
               >
-                {message.role === 'model' && (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                    <Bot size={20} />
-                  </div>
+                {message.role === 'assistant' && (
+                  <Avatar className="w-8 h-8 border">
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      <Bot className="w-5 h-5" />
+                    </AvatarFallback>
+                  </Avatar>
                 )}
                 <div
-                  className={cn(
-                    'max-w-xs rounded-lg px-4 py-2 text-sm sm:max-w-md',
+                  className={`rounded-lg px-4 py-2 max-w-[85%] shadow-sm ${
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted'
-                  )}
+                  }`}
                 >
-                  <p className="whitespace-pre-wrap">{message.content}</p>
-                   {message.toolResult && (
-                      <div className="mt-2 space-y-2">
-                        <div className="w-full aspect-video rounded-md overflow-hidden border">
-                          {isMapLoaded && position ? (
-                            <GoogleMap
-                              mapContainerStyle={containerStyle}
-                              center={{lat: position.latitude, lng: position.longitude}}
-                              zoom={15}
-                              options={mapOptions}
-                            >
-                              <MarkerF position={{ lat: position.latitude, lng: position.longitude }} />
-                              {directions && <DirectionsRenderer directions={directions} />}
-                            </GoogleMap>
-                          ) : <Loader className="animate-spin" />}
-                        </div>
-                        <Button variant="outline" size="sm" asChild className="w-full">
-                           <a href={message.toolResult.url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Open in Google Maps
-                           </a>
-                        </Button>
-                      </div>
-                   )}
+                  <p className="text-sm whitespace-pre-wrap font-body">{message.content}</p>
                 </div>
                 {message.role === 'user' && (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                    <User size={20} />
-                  </div>
+                  <Avatar className="w-8 h-8 border">
+                    <AvatarFallback>
+                      <User className="w-5 h-5" />
+                    </AvatarFallback>
+                  </Avatar>
                 )}
               </div>
             ))}
-            {isLoading && (
-              <div className="flex items-start gap-3 justify-start">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  <Bot size={20} />
-                </div>
-                <div className="bg-muted rounded-lg px-4 py-3">
-                  <Loader className="animate-spin" />
+            {loading && (
+              <div className="flex items-start gap-3">
+                <Avatar className="w-8 h-8 border">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    <Bot className="w-5 h-5" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="rounded-lg px-4 py-2 bg-muted flex items-center shadow-sm">
+                  <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t bg-background">
-          {messages.length === 0 && !isLoading && (
-            <div className="mb-2 grid grid-cols-2 gap-2 text-xs">
-              {suggestedPrompts.map((prompt) => (
-                <Button
-                  key={prompt}
-                  variant="outline"
-                  size="sm"
-                  className="h-auto whitespace-normal"
-                  onClick={() => handleSendMessage(prompt)}
-                  disabled={isLoading}
-                >
-                  {prompt}
-                </Button>
-              ))}
-            </div>
-          )}
-
-          <div className="flex items-center gap-2">
+        <DialogFooter className="p-6 pt-2 border-t bg-background">
+          <form onSubmit={handleSubmit} className="flex gap-2 w-full">
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(input)}
-              placeholder='Type your message...'
-              disabled={isLoading}
+              placeholder="Ask for help or advice..."
+              disabled={loading}
+              className="flex-grow"
             />
-            <Button
-              size="icon"
-              onClick={() => handleSendMessage(input)}
-              disabled={isLoading || !input.trim()}
-              aria-label="Send Message"
-            >
-              <Send />
+            <Button type="submit" disabled={loading || !input.trim()} size="icon">
+              <Send className="w-5 h-5" />
+              <span className="sr-only">Send message</span>
             </Button>
-          </div>
-           {!position && (
-              <p className="text-xs text-muted-foreground mt-2 text-center">
-                <AlertTriangle className="inline-block h-3 w-3 mr-1" />
-                Location is off. The assistant cannot find nearby places for you.
-              </p>
-           )}
-        </div>
+          </form>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

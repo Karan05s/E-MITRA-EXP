@@ -13,13 +13,13 @@ import {
   type TranslateTextInput,
 } from '@/ai/flows/translate-text';
 import {
-  emergencyChat,
-  type EmergencyChatInput,
-} from '@/ai/flows/emergency-chat';
-import {
   generateIncidentReport,
   type GenerateIncidentReportInput,
 } from '@/ai/flows/report-incident';
+import {
+  emergencyGuidanceFlow,
+  type EmergencyGuidanceInput,
+} from '@/ai/flows/emergency-guidance';
 import {
   registerUserInDb,
   removeUserFromDb,
@@ -65,15 +65,16 @@ export async function getTranslation(input: TranslateTextInput) {
   }
 }
 
-export async function getEmergencyChatResponse(input: EmergencyChatInput) {
+export async function runEmergencyGuidanceChat(input: EmergencyGuidanceInput) {
   try {
-    const result = await emergencyChat(input);
-    return { success: true, data: result };
+    const result = await emergencyGuidanceFlow(input);
+    return result;
   } catch (error) {
-    console.error('Error in getEmergencyChatResponse:', error);
-    return { success: false, error: 'Failed to get emergency chat response.' };
+    console.error('Error in runEmergencyGuidanceChat:', error);
+    throw new Error('Failed to get emergency chat response.');
   }
 }
+
 
 export async function getIncidentReport(input: GenerateIncidentReportInput) {
   try {

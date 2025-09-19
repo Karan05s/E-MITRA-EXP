@@ -125,8 +125,6 @@ export default function DashboardPage() {
         <EmergencyChatModal
           isOpen={isChatOpen}
           onOpenChange={setChatOpen}
-          position={position}
-          isMapLoaded={isMapLoaded}
         />
         <ReportIncidentModal
           isOpen={isReportOpen}
