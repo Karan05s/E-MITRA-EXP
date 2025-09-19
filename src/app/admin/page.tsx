@@ -91,8 +91,11 @@ export default function AdminPage() {
     
     intervalRef.current = setInterval(async () => {
       const result = await getUserById(userIdToTrack);
-      if (result.success && result.data?.user && result.data?.position) {
-        setTrackedPosition(result.data.position);
+      if (result.success && result.data?.user) {
+        // Only update position if it's available
+        if (result.data.position) {
+          setTrackedPosition(result.data.position);
+        }
       }
     }, TRACKING_INTERVAL);
   };
@@ -112,12 +115,15 @@ export default function AdminPage() {
 
     const result = await getUserById(cleanUserId);
 
-    if (result.success && result.data?.user && result.data?.position) {
+    // Check if the user was found, even if position is not yet available.
+    if (result.success && result.data?.user) {
       setTrackedUser(result.data.user);
+      // Set position if it exists, otherwise it remains null
       setTrackedPosition(result.data.position);
+      // Start polling for location updates immediately.
       startTracking(cleanUserId);
     } else {
-      setError('User ID not found or user has no position data yet.');
+      setError('User ID not found.');
     }
     setIsLoading(false);
   };
@@ -196,7 +202,7 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {trackedUser && trackedPosition && (
+              {trackedUser && (
                 <div className="space-y-4 pt-4">
                   <h3 className="text-lg font-semibold">Live Tracking Details</h3>
                   <div className="grid md:grid-cols-2 gap-6">
@@ -223,17 +229,23 @@ export default function AdminPage() {
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <p className="font-mono text-sm">
-                            Lat: {trackedPosition.latitude.toFixed(5)}
-                          </p>
-                          <p className="font-mono text-sm">
-                            Lon: {trackedPosition.longitude.toFixed(5)}
-                          </p>
+                          {trackedPosition ? (
+                            <>
+                              <p className="font-mono text-sm">
+                                Lat: {trackedPosition.latitude.toFixed(5)}
+                              </p>
+                              <p className="font-mono text-sm">
+                                Lon: {trackedPosition.longitude.toFixed(5)}
+                              </p>
+                            </>
+                          ) : (
+                             <p className="text-sm text-muted-foreground">Waiting for location data...</p>
+                          )}
                         </CardContent>
                       </Card>
                     </div>
                     <div className="w-full h-[300px] md:h-full rounded-lg overflow-hidden border">
-                      {isLoaded ? (
+                      {isLoaded && trackedPosition ? (
                         <GoogleMap
                           mapContainerStyle={containerStyle}
                           center={{
@@ -253,6 +265,9 @@ export default function AdminPage() {
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-muted">
                           <Loader className="animate-spin text-muted-foreground" />
+                           <span className="ml-2 text-muted-foreground">
+                            { isLoaded ? "Waiting for location..." : "Loading map..."}
+                          </span>
                         </div>
                       )}
                     </div>
