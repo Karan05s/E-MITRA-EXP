@@ -12,16 +12,12 @@ const users: Map<
 /**
  * Fetches a user's data and last known location by their ID from memory.
  * @param userId The unique ID of the user to fetch.
- * @returns An object containing the user and their position, or nulls if not found.
+ * @returns An object containing the user and their position, or null if not found.
  */
 export async function getUserByIdFromDb(
   userId: string
-): Promise<{ user: User | null; position: Position | null }> {
-  const data = users.get(userId);
-  if (data) {
-    return { user: data.user, position: data.position };
-  }
-  return { user: null, position: null };
+): Promise<{ user: User; position: Position | null } | null> {
+  return users.get(userId) || null;
 }
 
 /**
