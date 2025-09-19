@@ -6,7 +6,7 @@ export function RotatingArtBackground() {
   return (
     <div className="absolute inset-0 z-0 overflow-hidden">
       <Image
-        src="https://picsum.photos/seed/emitra/1920/1080"
+        src="/background.jpg"
         alt="Background image of a cultural art piece"
         fill
         className="object-cover"
