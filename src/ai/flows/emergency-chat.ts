@@ -75,8 +75,7 @@ export async function emergencyChat(
   // Conditionally configure tools based on whether the user's location is available.
   const toolConfig = userPosition
     ? {
-        tools: [findNearbyPlacesTool],
-        toolChoice: [
+        tools: [
           {
             tool: findNearbyPlacesTool,
             context: {

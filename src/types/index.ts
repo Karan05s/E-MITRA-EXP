@@ -19,3 +19,8 @@ export interface EmergencyContact {
   name: string;
   phone: string;
 }
+
+export interface IncidentReport {
+  description: string;
+  location: string;
+}

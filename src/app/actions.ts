@@ -17,6 +17,10 @@ import {
   type EmergencyChatInput,
 } from '@/ai/flows/emergency-chat';
 import {
+  generateIncidentReport,
+  type GenerateIncidentReportInput,
+} from '@/ai/flows/report-incident';
+import {
   registerUserInDb,
   removeUserFromDb,
   updateUserPositionInDb,
@@ -68,6 +72,16 @@ export async function getEmergencyChatResponse(input: EmergencyChatInput) {
   } catch (error) {
     console.error('Error in getEmergencyChatResponse:', error);
     return { success: false, error: 'Failed to get emergency chat response.' };
+  }
+}
+
+export async function getIncidentReport(input: GenerateIncidentReportInput) {
+  try {
+    const result = await generateIncidentReport(input);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error in getIncidentReport:', error);
+    return { success: false, error: 'Failed to generate incident report.' };
   }
 }
 

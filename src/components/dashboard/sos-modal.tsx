@@ -16,10 +16,13 @@ import {
   HeartPulse,
   ShieldAlert,
   Users,
+  Share2,
+  Clipboard,
+  ClipboardCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getSafetySuggestions } from '@/app/actions';
-import type { Position, EmergencyContact } from '@/types';
+import type { Position, EmergencyContact, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 
@@ -27,6 +30,7 @@ interface SosModalProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   position: Position | null;
+  user: User;
   emergencyContacts: EmergencyContact[];
   isMapLoaded: boolean;
 }
@@ -35,11 +39,13 @@ export function SosModal({
   isOpen,
   onOpenChange,
   position,
+  user,
   emergencyContacts,
 }: SosModalProps) {
   const [suggestions, setSuggestions] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
   const fetchSuggestions = async () => {
@@ -67,10 +73,33 @@ export function SosModal({
     setIsLoading(false);
   };
 
+  const handleShareLocation = () => {
+    if (!position) {
+       toast({
+        variant: 'destructive',
+        title: 'Location Not Available',
+        description: 'Cannot share location because it is currently unavailable.',
+      });
+      return;
+    }
+
+    const mapUrl = `https://www.google.com/maps?q=${position.latitude},${position.longitude}`;
+    const message = `Emergency! This is ${user.name}. I need help. My current location is: ${mapUrl}`;
+    
+    navigator.clipboard.writeText(message);
+    setCopied(true);
+    toast({
+      title: 'Message Copied to Clipboard!',
+      description: 'Quickly paste this message into a chat with your trusted contacts.',
+    });
+    setTimeout(() => setCopied(false), 3000);
+  };
+
   useEffect(() => {
     if (isOpen) {
       // Reset state on open
       setSuggestions(null);
+      setCopied(false);
       fetchSuggestions();
     }
   }, [isOpen]);
@@ -84,12 +113,28 @@ export function SosModal({
             SOS - Emergency Mode
           </DialogTitle>
           <DialogDescription>
-            Stay calm. Help is on the way. Below are safety suggestions and
-            emergency contacts.
+            Stay calm. Share your location and use the suggestions and contacts below.
           </DialogDescription>
         </DialogHeader>
+        
+        <div className='my-4'>
+           <Button onClick={handleShareLocation} className='w-full' variant="secondary" size="lg">
+              {copied ? (
+                <>
+                  <ClipboardCheck className='h-5 w-5' />
+                  <span>Message Copied!</span>
+                </>
+              ) : (
+                 <>
+                  <Share2 className='h-5 w-5' />
+                  <span>Share Location with Contacts</span>
+                </>
+              )}
+           </Button>
+        </div>
 
-        <div className="min-h-[150px] rounded-lg border bg-muted p-4 my-4">
+
+        <div className="min-h-[150px] rounded-lg border bg-muted p-4">
           {isLoading && (
             <div className="flex h-full flex-col items-center justify-center text-muted-foreground">
               <Loader className="mb-2 h-6 w-6 animate-spin" />

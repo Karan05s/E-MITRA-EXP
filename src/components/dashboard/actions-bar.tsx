@@ -5,6 +5,7 @@ import {
   Lightbulb,
   Languages,
   MessageCircle,
+  FilePenLine,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -13,6 +14,7 @@ interface ActionsBarProps {
   onSuggestions: () => void;
   onTranslate: () => void;
   onChat: () => void;
+  onReport: () => void;
 }
 
 export function ActionsBar({
@@ -20,10 +22,11 @@ export function ActionsBar({
   onSuggestions,
   onTranslate,
   onChat,
+  onReport,
 }: ActionsBarProps) {
   return (
     <div className="sticky bottom-0 left-0 right-0 z-10 w-full border-t bg-card/80 p-2 backdrop-blur-sm">
-      <div className="mx-auto grid max-w-lg grid-cols-4 gap-2">
+      <div className="mx-auto grid max-w-lg grid-cols-5 gap-1">
         <ActionButton
           icon={Lightbulb}
           label="Tips"
@@ -40,6 +43,12 @@ export function ActionsBar({
           icon={MessageCircle}
           label="Chat"
           onClick={onChat}
+          variant="ghost"
+        />
+        <ActionButton
+          icon={FilePenLine}
+          label="Report"
+          onClick={onReport}
           variant="ghost"
         />
         <ActionButton

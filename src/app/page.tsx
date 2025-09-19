@@ -10,6 +10,7 @@ import { SosModal } from '@/components/dashboard/sos-modal';
 import { SuggestionsModal } from '@/components/dashboard/suggestions-modal';
 import { TranslationModal } from '@/components/dashboard/translation-modal';
 import { EmergencyChatModal } from '@/components/dashboard/emergency-chat-modal';
+import { ReportIncidentModal } from '@/components/dashboard/report-incident-modal';
 import { ProfileSidebar } from '@/components/dashboard/profile-sidebar';
 import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -39,6 +40,7 @@ export default function DashboardPage() {
   const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
   const [isTranslationOpen, setTranslationOpen] = useState(false);
   const [isChatOpen, setChatOpen] = useState(false);
+  const [isReportOpen, setReportOpen] = useState(false);
   const [isProfileSidebarOpen, setProfileSidebarOpen] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
   const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
@@ -99,6 +101,7 @@ export default function DashboardPage() {
             onSuggestions={() => setSuggestionsOpen(true)}
             onTranslate={() => setTranslationOpen(true)}
             onChat={() => setChatOpen(true)}
+            onReport={() => setReportOpen(true)}
           />
         </div>
         {/* Modals & Sidebars */}
@@ -106,6 +109,7 @@ export default function DashboardPage() {
           isOpen={isSosOpen}
           onOpenChange={setSosOpen}
           position={position}
+          user={user}
           emergencyContacts={emergencyContacts}
           isMapLoaded={isMapLoaded}
         />
@@ -123,6 +127,11 @@ export default function DashboardPage() {
           onOpenChange={setChatOpen}
           position={position}
           isMapLoaded={isMapLoaded}
+        />
+        <ReportIncidentModal
+          isOpen={isReportOpen}
+          onOpenChange={setReportOpen}
+          position={position}
         />
         <ProfileSidebar
           isOpen={isProfileSidebarOpen}
