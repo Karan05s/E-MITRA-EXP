@@ -26,7 +26,7 @@ import {
   Users,
   Lock,
 } from 'lucide-react';
-import { getUserById } from '@/services/user-service';
+import { getUserById as getUserAction } from '@/services/user-service';
 import { getAllActiveUsers } from '@/app/actions';
 import type { User as UserType, Position } from '@/types';
 import Link from 'next/link';
@@ -92,7 +92,7 @@ export default function AdminPage() {
     // If we have a tracked user, start polling for their location
     if (trackedUser) {
       intervalRef.current = setInterval(async () => {
-        const { user, position } = await getUserById(trackedUser.id);
+        const { user, position } = await getUserAction(trackedUser.id);
         if (user && position) {
           setTrackedPosition(position);
         }
@@ -119,13 +119,13 @@ export default function AdminPage() {
     setTrackedUser(null);
     setTrackedPosition(null);
 
-    const { user, position } = await getUserById(cleanUserId);
+    const { user, position } = await getUserAction(cleanUserId);
 
     if (user && position) {
       setTrackedUser(user);
       setTrackedPosition(position);
     } else {
-      setError('User ID not found.');
+      setError('User ID not found or user has no position data yet.');
     }
     setIsLoading(false);
   };
