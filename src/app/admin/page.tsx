@@ -22,14 +22,10 @@ import {
   MapPin,
   AlertTriangle,
   Search,
-  RefreshCw,
-  Users,
-  Lock,
 } from 'lucide-react';
-import { getUserById, getAllActiveUsers } from '@/app/actions';
+import { getUserById } from '@/app/actions';
 import type { User as UserType, Position } from '@/types';
 import Link from 'next/link';
-import { Separator } from '@/components/ui/separator';
 
 const containerStyle = {
   width: '100%',
@@ -56,14 +52,6 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [activeUsers, setActiveUsers] = useState<UserType[]>([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
-  const [usersError, setUsersError] = useState<string | null>(null);
-
-  const [usersPassword, setUsersPassword] = useState('');
-  const [isUsersSectionUnlocked, setIsUsersSectionUnlocked] = useState(false);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { isLoaded } = useJsApiLoader({
@@ -85,10 +73,10 @@ export default function AdminPage() {
       stopTracking();
     };
   }, []);
-  
+
   const startTracking = (userIdToTrack: string) => {
     stopTracking(); // Stop any existing tracking
-    
+
     intervalRef.current = setInterval(async () => {
       const result = await getUserById(userIdToTrack);
       if (result.success && result.data?.user) {
@@ -99,7 +87,6 @@ export default function AdminPage() {
       }
     }, TRACKING_INTERVAL);
   };
-
 
   const handleTrackUser = async () => {
     stopTracking();
@@ -123,38 +110,10 @@ export default function AdminPage() {
       // Start polling for location updates immediately.
       startTracking(cleanUserId);
     } else {
-      setError('User ID not found.');
+      setError('User ID not found or user has no position data yet.');
     }
     setIsLoading(false);
   };
-
-  const fetchActiveUsers = async () => {
-    setIsLoadingUsers(true);
-    setUsersError(null);
-    const result = await getAllActiveUsers();
-    if (result.success && result.data) {
-      setActiveUsers(result.data);
-    } else {
-      setUsersError(result.error || 'Could not fetch users.');
-    }
-    setIsLoadingUsers(false);
-  };
-  
-  const handleUnlockUsers = () => {
-    if (usersPassword === '865524') {
-      setIsUsersSectionUnlocked(true);
-      setPasswordError(null);
-      fetchActiveUsers();
-    } else {
-      setPasswordError('Incorrect password.');
-    }
-  };
-
-  useEffect(() => {
-    if (isUsersSectionUnlocked) {
-      fetchActiveUsers();
-    }
-  }, [isUsersSectionUnlocked]);
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-background p-4 md:p-6">
@@ -169,198 +128,114 @@ export default function AdminPage() {
             <CardTitle className="text-2xl font-headline">
               Administrator Panel
             </CardTitle>
+            <CardDescription>
+              Track a user's live location by entering their Unique User ID.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* User Tracking Section */}
-            <div>
-              <CardDescription className="mb-2">
-                Track a user by entering their Unique User ID.
-              </CardDescription>
-              <div className="flex w-full max-w-sm items-center space-x-2">
-                <Input
-                  type="text"
-                  placeholder="Enter User ID..."
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleTrackUser()}
-                  disabled={isLoading}
-                />
-                <Button onClick={handleTrackUser} disabled={isLoading}>
-                  {isLoading ? (
-                    <Loader className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Search className="h-4 w-4" />
-                  )}
-                  <span className="ml-2 hidden sm:inline">Track User</span>
-                </Button>
+            <div className="flex w-full max-w-sm items-center space-x-2">
+              <Input
+                type="text"
+                placeholder="Enter User ID..."
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleTrackUser()}
+                disabled={isLoading}
+              />
+              <Button onClick={handleTrackUser} disabled={isLoading}>
+                {isLoading ? (
+                  <Loader className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
+                <span className="ml-2 hidden sm:inline">Track User</span>
+              </Button>
+            </div>
+
+            {error && (
+              <div className="text-destructive flex items-center gap-2 mt-2">
+                <AlertTriangle className="h-4 w-4" />
+                <p>{error}</p>
               </div>
+            )}
 
-              {error && (
-                <div className="text-destructive flex items-center gap-2 mt-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  <p>{error}</p>
-                </div>
-              )}
-
-              {trackedUser && (
-                <div className="space-y-4 pt-4">
-                  <h3 className="text-lg font-semibold">Live Tracking Details</h3>
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <Card>
-                        <CardHeader className="flex-row items-center space-x-2 pb-2">
-                          <User className="h-5 w-5 text-primary" />
-                          <CardTitle className="text-lg">User</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="font-semibold text-lg">
-                            {trackedUser.name}
+            {trackedUser && (
+              <div className="space-y-4 pt-4">
+                <h3 className="text-lg font-semibold">Live Tracking Details</h3>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <Card>
+                      <CardHeader className="flex-row items-center space-x-2 pb-2">
+                        <User className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-lg">User</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="font-semibold text-lg">
+                          {trackedUser.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground font-mono">
+                          ID: {trackedUser.id.replace(/(\d{4})(?=\d)/g, '$1 ')}
+                        </p>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader className="flex-row items-center space-x-2 pb-2">
+                        <MapPin className="h-5 w-5 text-primary" />
+                        <CardTitle className="text-lg">
+                          Live Location
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {trackedPosition ? (
+                          <>
+                            <p className="font-mono text-sm">
+                              Lat: {trackedPosition.latitude.toFixed(5)}
+                            </p>
+                            <p className="font-mono text-sm">
+                              Lon: {trackedPosition.longitude.toFixed(5)}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">
+                            Waiting for location data...
                           </p>
-                          <p className="text-sm text-muted-foreground font-mono">
-                            ID: {trackedUser.id.replace(/(\d{4})(?=\d)/g, '$1 ')}
-                          </p>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader className="flex-row items-center space-x-2 pb-2">
-                          <MapPin className="h-5 w-5 text-primary" />
-                          <CardTitle className="text-lg">
-                            Live Location
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {trackedPosition ? (
-                            <>
-                              <p className="font-mono text-sm">
-                                Lat: {trackedPosition.latitude.toFixed(5)}
-                              </p>
-                              <p className="font-mono text-sm">
-                                Lon: {trackedPosition.longitude.toFixed(5)}
-                              </p>
-                            </>
-                          ) : (
-                             <p className="text-sm text-muted-foreground">Waiting for location data...</p>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </div>
-                    <div className="w-full h-[300px] md:h-full rounded-lg overflow-hidden border">
-                      {isLoaded && trackedPosition ? (
-                        <GoogleMap
-                          mapContainerStyle={containerStyle}
-                          center={{
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                  <div className="w-full h-[300px] md:h-full rounded-lg overflow-hidden border">
+                    {isLoaded && trackedPosition ? (
+                      <GoogleMap
+                        mapContainerStyle={containerStyle}
+                        center={{
+                          lat: trackedPosition.latitude,
+                          lng: trackedPosition.longitude,
+                        }}
+                        zoom={15}
+                        options={mapOptions}
+                      >
+                        <MarkerF
+                          position={{
                             lat: trackedPosition.latitude,
                             lng: trackedPosition.longitude,
                           }}
-                          zoom={15}
-                          options={mapOptions}
-                        >
-                          <MarkerF
-                            position={{
-                              lat: trackedPosition.latitude,
-                              lng: trackedPosition.longitude,
-                            }}
-                          />
-                        </GoogleMap>
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-muted">
-                          <Loader className="animate-spin text-muted-foreground" />
-                           <span className="ml-2 text-muted-foreground">
-                            { isLoaded ? "Waiting for location..." : "Loading map..."}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <Separator />
-
-            {/* Active Users Section */}
-            <div>
-              {!isUsersSectionUnlocked ? (
-                <div className="space-y-4">
-                  <h3 className="text-xl font-headline flex items-center gap-2">
-                    <Lock className="h-5 w-5" />
-                    Unlock Active Users List
-                  </h3>
-                   <p className="text-muted-foreground text-sm">
-                    Enter the password to view the list of all active users.
-                  </p>
-                  <div className="flex w-full max-w-xs items-center space-x-2">
-                    <Input
-                      type="password"
-                      placeholder="Enter password..."
-                      value={usersPassword}
-                      onChange={(e) => setUsersPassword(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleUnlockUsers()}
-                    />
-                    <Button onClick={handleUnlockUsers}>Unlock</Button>
-                  </div>
-                   {passwordError && (
-                    <div className="text-destructive flex items-center gap-2 mt-2">
-                      <AlertTriangle className="h-4 w-4" />
-                      <p>{passwordError}</p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="space-y-1">
-                      <h3 className="text-xl font-headline flex items-center gap-2">
-                        <Users className="h-5 w-5" />
-                        Active Users
-                      </h3>
-                      <p className="text-muted-foreground text-sm">
-                        A list of all currently active users.
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={fetchActiveUsers}
-                      disabled={isLoadingUsers}
-                    >
-                      {isLoadingUsers ? (
-                        <Loader className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-4 w-4" />
-                      )}
-                      <span className="sr-only">Refresh User List</span>
-                    </Button>
-                  </div>
-
-                  {isLoadingUsers && <p>Loading users...</p>}
-                  {usersError && (
-                    <p className="text-destructive">{usersError}</p>
-                  )}
-                  {!isLoadingUsers &&
-                    !usersError &&
-                    (activeUsers.length > 0 ? (
-                      <ul className="space-y-3">
-                        {activeUsers.map((user) => (
-                          <li
-                            key={user.id}
-                            className="flex items-center justify-between rounded-lg border p-3"
-                          >
-                            <span className="font-semibold">{user.name}</span>
-                            <span className="font-mono text-sm text-muted-foreground">
-                              {user.id.replace(/(\d{4})(?=\d)/g, '$1 ')}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
+                        />
+                      </GoogleMap>
                     ) : (
-                      <p className="text-muted-foreground text-center py-4">
-                        No active users found.
-                      </p>
-                    ))}
+                      <div className="w-full h-full flex items-center justify-center bg-muted">
+                        <Loader className="animate-spin text-muted-foreground" />
+                        <span className="ml-2 text-muted-foreground">
+                          {isLoaded
+                            ? 'Waiting for location...'
+                            : 'Loading map...'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>
