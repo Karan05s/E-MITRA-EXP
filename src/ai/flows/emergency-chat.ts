@@ -9,7 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import type { ChatMessage, Position } from '@/types';
 import { findNearbyPlaces } from '@/services/google-maps-service';
 
@@ -72,29 +72,14 @@ export async function emergencyChat(
   const prompt = lastUserMessage.content;
   const historyMessages = history.slice(0, -1);
 
-  // Conditionally configure tools based on whether the user's location is available.
-  const toolConfig = userPosition
-    ? {
-        tools: [
-          {
-            tool: findNearbyPlacesTool,
-            context: {
-              userPosition: {
-                latitude: userPosition.latitude,
-                longitude: userPosition.longitude,
-              },
-            },
-          },
-        ],
-      }
-    : undefined;
+  const tools = userPosition ? [findNearbyPlacesTool] : [];
 
   const systemPrompt = `You are an emergency assistant chatbot for tourists called "E-Mitra".
       - Your primary goal is to help users who are in distress or feel unsafe.
       - Be calm, reassuring, and provide clear, concise, and actionable advice.
       ${
         userPosition
-          ? `- If the user asks for help, a police station, a hospital, or any safe place, you MUST use the 'findNearbyPlaces' tool to find the nearest one.
+          ? `- If the user asks for help, a police station, a hospital, or any safe place, you MUST use the 'findNearbyPlaces' tool to find the nearest one. Pass the user's location to the tool.
       - When you use the tool, briefly mention the result to the user in a caring tone, but do not just repeat the tool's output. For example: "I found a police station nearby for you. It's called [Name] and it's about a [Duration] walk away. I'm showing you the map now. Please head there safely."
       - If the tool returns no results, inform the user calmly that you couldn't find a place nearby and suggest they call emergency services (like 112 in India).`
           : `- The user's location is not available. You CANNOT find nearby places for them.
@@ -110,7 +95,15 @@ export async function emergencyChat(
       role: msg.role,
       content: [{ text: msg.content }]
     })),
-    toolConfig: toolConfig,
+    tools: tools,
+    toolConfig: userPosition ? {
+      context: {
+        userPosition: {
+          latitude: userPosition.latitude,
+          longitude: userPosition.longitude,
+        },
+      }
+    } : undefined,
     system: systemPrompt,
   });
 
@@ -126,5 +119,5 @@ export async function emergencyChat(
     }
   }
 
-  return { type: 'text', content: llmResponse.text() };
+  return { type: 'text', content: llmResponse.text };
 }
