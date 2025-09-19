@@ -22,10 +22,16 @@ import {
   MapPin,
   AlertTriangle,
   Search,
+  Eye,
+  Copy,
+  Users,
 } from 'lucide-react';
-import { getUserById } from '@/app/actions';
+import { getUserById, getAllActiveUsers } from '@/app/actions';
 import type { User as UserType, Position } from '@/types';
 import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+
 
 const containerStyle = {
   width: '100%',
@@ -42,6 +48,7 @@ const mapOptions = {
 
 const LIBRARIES = ['places'];
 const TRACKING_INTERVAL = 3000; // 3 seconds
+const ADMIN_PASSWORD = '865524';
 
 export default function AdminPage() {
   const [userId, setUserId] = useState('');
@@ -52,7 +59,15 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // State for active users panel
+  const [password, setPassword] = useState('');
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [activeUsers, setActiveUsers] = useState<UserType[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { toast } = useToast();
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -114,6 +129,32 @@ export default function AdminPage() {
     }
     setIsLoading(false);
   };
+  
+  const handleAuthorize = async () => {
+    if (password === ADMIN_PASSWORD) {
+      setIsAuthorized(true);
+      setAuthError(null);
+      setIsLoadingUsers(true);
+      const result = await getAllActiveUsers();
+      if (result.success && result.data) {
+        setActiveUsers(result.data);
+      } else {
+        setAuthError(result.error || 'Failed to fetch active users.');
+      }
+      setIsLoadingUsers(false);
+    } else {
+      setAuthError('Incorrect password. Please try again.');
+      setIsAuthorized(false);
+    }
+  };
+  
+  const handleCopyId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    toast({
+      title: 'User ID Copied!',
+      description: 'You can now paste this ID into the tracking input.',
+    });
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-background p-4 md:p-6">
@@ -129,29 +170,93 @@ export default function AdminPage() {
               Administrator Panel
             </CardTitle>
             <CardDescription>
-              Track a user's live location by entering their Unique User ID.
+              Track a user's live location or view all active users.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* User Tracking Section */}
-            <div className="flex w-full max-w-sm items-center space-x-2">
-              <Input
-                type="text"
-                placeholder="Enter User ID..."
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleTrackUser()}
-                disabled={isLoading}
-              />
-              <Button onClick={handleTrackUser} disabled={isLoading}>
-                {isLoading ? (
-                  <Loader className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Search className="h-4 w-4" />
-                )}
-                <span className="ml-2 hidden sm:inline">Track User</span>
-              </Button>
+
+             {/* Active Users Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2"><Users /> Active Users</h3>
+              {!isAuthorized ? (
+                <div className="flex w-full max-w-sm items-center space-x-2">
+                  <Input
+                    type="password"
+                    placeholder="Enter Admin Password..."
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAuthorize()}
+                  />
+                  <Button onClick={handleAuthorize}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Users
+                  </Button>
+                </div>
+              ) : (
+                <Card className="bg-muted/50">
+                  <CardContent className="pt-6">
+                    {isLoadingUsers ? (
+                       <div className="flex items-center justify-center text-muted-foreground">
+                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                        <span>Loading users...</span>
+                      </div>
+                    ) : activeUsers.length > 0 ? (
+                      <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                        {activeUsers.map((user) => (
+                           <div key={user.id} className="flex items-center justify-between rounded-lg border bg-background p-3">
+                            <div className="flex items-center gap-3">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <p className="font-semibold text-sm">{user.name}</p>
+                                <p className="text-xs text-muted-foreground font-mono">{user.id.replace(/(\d{4})(?=\d)/g, '$1 ')}</p>
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => handleCopyId(user.id)} className="h-8 w-8 text-muted-foreground hover:text-primary">
+                              <Copy className="h-4 w-4" />
+                               <span className="sr-only">Copy ID for {user.name}</span>
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-center text-muted-foreground py-4">No active users found.</p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+               {authError && (
+                <div className="text-destructive flex items-center gap-2 mt-2 text-sm">
+                  <AlertTriangle className="h-4 w-4" />
+                  <p>{authError}</p>
+                </div>
+              )}
             </div>
+
+            <Separator />
+          
+            {/* User Tracking Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2"><MapPin /> Live Tracking</h3>
+              <div className="flex w-full max-w-sm items-center space-x-2">
+                <Input
+                  type="text"
+                  placeholder="Enter or Paste User ID..."
+                  value={userId}
+                  onChange={(e) => setUserId(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleTrackUser()}
+                  disabled={isLoading}
+                />
+                <Button onClick={handleTrackUser} disabled={isLoading}>
+                  {isLoading ? (
+                    <Loader className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4" />
+                  )}
+                  <span className="ml-2 hidden sm:inline">Track User</span>
+                </Button>
+              </div>
+            </div>
+
 
             {error && (
               <div className="text-destructive flex items-center gap-2 mt-2">
@@ -242,3 +347,5 @@ export default function AdminPage() {
     </div>
   );
 }
+
+    
