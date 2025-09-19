@@ -72,12 +72,10 @@ export async function emergencyChat(
   const prompt = lastUserMessage.content;
   const historyMessages = history.slice(0, -1);
 
-  // Conditionally include the tool and update the system prompt
-  // based on whether the user's location is available.
-  const tools = userPosition ? [findNearbyPlacesTool] : [];
+  // Conditionally configure tools based on whether the user's location is available.
   const toolConfig = userPosition
     ? {
-        mode: 'auto' as const,
+        tools: [findNearbyPlacesTool],
         toolChoice: [
           {
             tool: findNearbyPlacesTool,
@@ -113,7 +111,6 @@ export async function emergencyChat(
       role: msg.role,
       content: [{ text: msg.content }]
     })),
-    tools: tools,
     toolConfig: toolConfig,
     system: systemPrompt,
   });
