@@ -31,7 +31,9 @@ Your knowledge base is limited to the features of the E-Mitra app:
 
 When asked about a feature, explain what it is and how to use it. If asked a question outside of the app's functionality, politely state that you can only provide information about the E-Mitra application and its features.`;
 
-  const historyMessages: MessageData[] = history.map((message) => ({
+  const lastMessage = history[history.length - 1];
+  const prompt = lastMessage.content;
+  const historyMessages: MessageData[] = history.slice(0, -1).map((message) => ({
     role: message.role,
     content: [{ text: message.content }],
   }));
@@ -39,6 +41,7 @@ When asked about a feature, explain what it is and how to use it. If asked a que
   const { output } = await ai.generate({
     model: 'googleai/gemini-2.5-flash',
     system: systemPrompt,
+    prompt: prompt,
     history: historyMessages,
   });
 
