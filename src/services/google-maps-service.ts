@@ -2,7 +2,7 @@
 
 import type { Position } from '@/types';
 
-const API_KEY = process.env.GEMINI_API_KEY;
+const API_KEY = process.env.GOOGLE_API_KEY;
 const BASE_URL = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json';
 const DISTANCE_MATRIX_URL = 'https://maps.googleapis.com/maps/api/distancematrix/json';
 
