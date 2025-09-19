@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 export const metadata: Metadata = {
   title: 'E-Mitra',
   description: 'Your personal safety companion.',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
@@ -25,6 +26,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
           rel="stylesheet"
         />
+        <meta name="theme-color" content="#eca054" />
       </head>
       <body className="font-body antialiased">
         {children}

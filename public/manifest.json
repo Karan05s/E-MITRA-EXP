@@ -1,0 +1,16 @@
+{
+  "name": "E-Mitra",
+  "short_name": "E-Mitra",
+  "description": "Your personal safety companion.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0eade",
+  "theme_color": "#eca054",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
