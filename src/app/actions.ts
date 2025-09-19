@@ -13,6 +13,10 @@ import {
   type TranslateTextInput,
 } from '@/ai/flows/translate-text';
 import {
+  emergencyChat,
+  type EmergencyChatInput,
+} from '@/ai/flows/emergency-chat';
+import {
   registerUserInDb,
   removeUserFromDb,
   updateUserPositionInDb,
@@ -54,6 +58,16 @@ export async function getTranslation(input: TranslateTextInput) {
   } catch (error) {
     console.error('Error in getTranslation:', error);
     return { success: false, error: 'Failed to translate text.' };
+  }
+}
+
+export async function getEmergencyChatResponse(input: EmergencyChatInput) {
+  try {
+    const result = await emergencyChat(input);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error in getEmergencyChatResponse:', error);
+    return { success: false, error: 'Failed to get emergency chat response.' };
   }
 }
 

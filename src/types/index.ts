@@ -12,6 +12,7 @@ export interface Position {
 export interface ChatMessage {
   role: 'user' | 'model';
   content: string;
+  toolResult?: any;
 }
 
 export interface EmergencyContact {

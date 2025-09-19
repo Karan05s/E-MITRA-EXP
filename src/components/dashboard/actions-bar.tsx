@@ -4,6 +4,7 @@ import {
   Siren,
   Lightbulb,
   Languages,
+  MessageCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -11,16 +12,18 @@ interface ActionsBarProps {
   onSos: () => void;
   onSuggestions: () => void;
   onTranslate: () => void;
+  onChat: () => void;
 }
 
 export function ActionsBar({
   onSos,
   onSuggestions,
   onTranslate,
+  onChat,
 }: ActionsBarProps) {
   return (
     <div className="sticky bottom-0 left-0 right-0 z-10 w-full border-t bg-card/80 p-2 backdrop-blur-sm">
-      <div className="mx-auto grid max-w-lg grid-cols-3 gap-2">
+      <div className="mx-auto grid max-w-lg grid-cols-4 gap-2">
         <ActionButton
           icon={Lightbulb}
           label="Tips"
@@ -31,6 +34,12 @@ export function ActionsBar({
           icon={Languages}
           label="Translate"
           onClick={onTranslate}
+          variant="ghost"
+        />
+         <ActionButton
+          icon={MessageCircle}
+          label="Chat"
+          onClick={onChat}
           variant="ghost"
         />
         <ActionButton
