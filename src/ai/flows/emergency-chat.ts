@@ -41,6 +41,9 @@ const findNearbyPlacesTool = ai.defineTool(
     }).nullable(),
   },
   async (input) => {
+    // This check should ideally not be needed if the AI respects the tool's availability,
+    // but it's a good safeguard.
+    if (!input.userPosition) return null;
     return findNearbyPlaces(input.placeType, input.userPosition);
   }
 );
@@ -48,7 +51,7 @@ const findNearbyPlacesTool = ai.defineTool(
 
 const EmergencyChatInputSchema = z.object({
   history: z.array(z.custom<ChatMessage>()).optional(),
-  userPosition: z.custom<Position>(),
+  userPosition: z.custom<Position>().nullable(),
 });
 export type EmergencyChatInput = z.infer<typeof EmergencyChatInputSchema>;
 
@@ -59,7 +62,7 @@ export type EmergencyChatOutput =
 export async function emergencyChat(
   input: EmergencyChatInput
 ): Promise<EmergencyChatOutput> {
-  const { history = [] } = input;
+  const { history = [], userPosition } = input;
   const lastUserMessage = history[history.length - 1];
 
   if (!lastUserMessage || lastUserMessage.role !== 'user') {
@@ -69,6 +72,40 @@ export async function emergencyChat(
   const prompt = lastUserMessage.content;
   const historyMessages = history.slice(0, -1);
 
+  // Conditionally include the tool and update the system prompt
+  // based on whether the user's location is available.
+  const tools = userPosition ? [findNearbyPlacesTool] : [];
+  const toolConfig = userPosition
+    ? {
+        mode: 'auto' as const,
+        toolChoice: [
+          {
+            tool: findNearbyPlacesTool,
+            context: {
+              userPosition: {
+                latitude: userPosition.latitude,
+                longitude: userPosition.longitude,
+              },
+            },
+          },
+        ],
+      }
+    : undefined;
+
+  const systemPrompt = `You are an emergency assistant chatbot for tourists called "E-Mitra".
+      - Your primary goal is to help users who are in distress or feel unsafe.
+      - Be calm, reassuring, and provide clear, concise, and actionable advice.
+      ${
+        userPosition
+          ? `- If the user asks for help, a police station, a hospital, or any safe place, you MUST use the 'findNearbyPlaces' tool to find the nearest one.
+      - When you use the tool, briefly mention the result to the user in a caring tone, but do not just repeat the tool's output. For example: "I found a police station nearby for you. It's called [Name] and it's about a [Duration] walk away. I'm showing you the map now. Please head there safely."
+      - If the tool returns no results, inform the user calmly that you couldn't find a place nearby and suggest they call emergency services (like 112 in India).`
+          : `- The user's location is not available. You CANNOT find nearby places for them.
+      - If the user asks for a police station, hospital, or directions, you must inform them that you cannot look up places without their location. Advise them to use a map application or ask someone nearby for directions. You can still provide general safety advice.`
+      }
+      - For general conversation, keep your responses brief and focused on safety.`;
+
+
   const llmResponse = await ai.generate({
     model: 'googleai/gemini-2.5-flash',
     prompt: prompt,
@@ -76,29 +113,9 @@ export async function emergencyChat(
       role: msg.role,
       content: [{ text: msg.content }]
     })),
-    tools: [findNearbyPlacesTool],
-    toolConfig: {
-      mode: 'auto',
-      toolChoice: [
-        {
-          tool: findNearbyPlacesTool,
-          // Pass the user's position to the tool whenever the AI decides to call it.
-          context: {
-            userPosition: {
-              latitude: input.userPosition.latitude,
-              longitude: input.userPosition.longitude,
-            },
-          },
-        },
-      ],
-    },
-    system: `You are an emergency assistant chatbot for tourists called "E-Mitra".
-      - Your primary goal is to help users who are in distress or feel unsafe.
-      - Be calm, reassuring, and provide clear, concise, and actionable advice.
-      - If the user asks for help, a police station, a hospital, or any safe place, you MUST use the 'findNearbyPlaces' tool to find the nearest one.
-      - When you use the tool, briefly mention the result to the user in a caring tone, but do not just repeat the tool's output. For example: "I found a police station nearby for you. It's called [Name] and it's about a [Duration] walk away. I'm showing you the map now. Please head there safely."
-      - If the tool returns no results, inform the user calmly that you couldn't find a place nearby and suggest they call emergency services (like 112 in India).
-      - For general conversation, keep your responses brief and focused on safety.`,
+    tools: tools,
+    toolConfig: toolConfig,
+    system: systemPrompt,
   });
 
   const toolRequest = llmResponse.toolRequest();

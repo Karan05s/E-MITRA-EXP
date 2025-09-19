@@ -71,14 +71,7 @@ export function EmergencyChatModal({
 
   const handleSendMessage = useCallback(async (messageText: string) => {
     const trimmedInput = messageText.trim();
-    if (!trimmedInput || !position) {
-      if (!position) {
-        toast({
-          variant: 'destructive',
-          title: 'Location Unavailable',
-          description: 'Cannot start chat without your location.',
-        });
-      }
+    if (!trimmedInput) {
       return;
     }
 
@@ -179,8 +172,8 @@ export function EmergencyChatModal({
             Emergency Assistant
           </DialogTitle>
           <DialogDescription>
-            Ask for help or directions to a safe place. This chat uses your
-            live location.
+            Ask for help or directions to a safe place. Your live
+            location will be used if available.
           </DialogDescription>
         </DialogHeader>
 
@@ -262,6 +255,7 @@ export function EmergencyChatModal({
                   size="sm"
                   className="h-auto whitespace-normal"
                   onClick={() => handleSendMessage(prompt)}
+                  disabled={isLoading}
                 >
                   {prompt}
                 </Button>
@@ -274,20 +268,24 @@ export function EmergencyChatModal({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(input)}
-              placeholder={
-                !position ? 'Waiting for location...' : 'Type your message...'
-              }
-              disabled={isLoading || !position}
+              placeholder='Type your message...'
+              disabled={isLoading}
             />
             <Button
               size="icon"
               onClick={() => handleSendMessage(input)}
-              disabled={isLoading || !input.trim() || !position}
+              disabled={isLoading || !input.trim()}
               aria-label="Send Message"
             >
               <Send />
             </Button>
           </div>
+           {!position && (
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                <AlertTriangle className="inline-block h-3 w-3 mr-1" />
+                Location is off. The assistant cannot find nearby places for you.
+              </p>
+           )}
         </div>
       </DialogContent>
     </Dialog>
