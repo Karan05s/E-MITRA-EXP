@@ -9,7 +9,6 @@ import { ActionsBar } from '@/components/dashboard/actions-bar';
 import { SosModal } from '@/components/dashboard/sos-modal';
 import { SuggestionsModal } from '@/components/dashboard/suggestions-modal';
 import { TranslationModal } from '@/components/dashboard/translation-modal';
-import { ChatModal } from '@/components/dashboard/chat-modal';
 import { ProfileSidebar } from '@/components/dashboard/profile-sidebar';
 import { Logo } from '@/components/logo';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,7 +16,6 @@ import type { Position, EmergencyContact } from '@/types';
 import { UserIDCard } from '@/components/dashboard/user-id-card';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { RotatingArtBackground } from '@/components/auth/rotating-art-background';
-import { FloatingChat } from '@/components/dashboard/floating-chat';
 
 const LIBRARIES = ['places'];
 const EMERGENCY_CONTACTS_KEY = 'e-mitra-emergency-contacts';
@@ -39,7 +37,6 @@ export default function DashboardPage() {
   const [isSosOpen, setSosOpen] = useState(false);
   const [isSuggestionsOpen, setSuggestionsOpen] = useState(false);
   const [isTranslationOpen, setTranslationOpen] = useState(false);
-  const [isChatOpen, setChatOpen] = useState(false);
   const [isProfileSidebarOpen, setProfileSidebarOpen] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
   const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([]);
@@ -99,7 +96,6 @@ export default function DashboardPage() {
             onSos={() => setSosOpen(true)}
             onSuggestions={() => setSuggestionsOpen(true)}
             onTranslate={() => setTranslationOpen(true)}
-            onChat={() => setChatOpen(true)}
           />
         </div>
         {/* Modals & Sidebars */}
@@ -119,11 +115,6 @@ export default function DashboardPage() {
           isOpen={isTranslationOpen}
           onOpenChange={setTranslationOpen}
         />
-        <ChatModal 
-          isOpen={isChatOpen} 
-          onOpenChange={setChatOpen} 
-          user={user}
-        />
         <ProfileSidebar
           isOpen={isProfileSidebarOpen}
           onOpenChange={setProfileSidebarOpen}
@@ -131,7 +122,6 @@ export default function DashboardPage() {
           emergencyContacts={emergencyContacts}
           onEmergencyContactsChange={setEmergencyContacts}
         />
-        <FloatingChat user={user} />
       </div>
     </>
   );
