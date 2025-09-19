@@ -27,6 +27,17 @@ If asked about topics outside of personal safety, politely steer the conversatio
     content: [{ text: message.content }],
   }));
 
+  // Check for the specific hardcoded question.
+  if (prompt.trim().toLowerCase() === 'what are some tips for solo travelers?') {
+    return `Solo travel offers a unique chance for personal growth and freedom. To make the most of your trip, focus on three key areas:
+
+1. **Smart Planning**: Research your destination, book essential accommodations and flights in advance, and inform a trusted person of your itinerary. Keep digital copies of important documents and notify your bank about your travel plans.
+
+2. **Safety First**: Always trust your gut instincts. Stay aware of your surroundings, be cautious with alcohol, and avoid looking like a vulnerable tourist. Use a money belt or secure bag for your valuables.
+
+3. **Embrace the Experience**: Leave room for spontaneity. Be open to meeting new people through tours or social activities, but also enjoy the solitude. Don't be afraid to dine alone and fully immerse yourself in the local culture.`;
+  }
+
   const { output } = await ai.generate({
     model: 'googleai/gemini-2.5-flash',
     system: systemPrompt,
