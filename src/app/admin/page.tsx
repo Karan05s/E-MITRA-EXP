@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   GoogleMap,
   useJsApiLoader,
@@ -45,6 +45,7 @@ const mapOptions = {
 };
 
 const LIBRARIES = ['places'];
+const TRACKING_INTERVAL = 3000; // 3 seconds
 
 export default function AdminPage() {
   const [userId, setUserId] = useState('');
@@ -62,12 +63,49 @@ export default function AdminPage() {
   const [usersPassword, setUsersPassword] = useState('');
   const [isUsersSectionUnlocked, setIsUsersSectionUnlocked] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries: LIBRARIES as any,
   });
+
+  // Cleanup interval on component unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+  
+  // Effect to handle live tracking
+  useEffect(() => {
+    // Clear any existing interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    
+    // If we have a tracked user, start polling for their location
+    if (trackedUser) {
+      intervalRef.current = setInterval(async () => {
+        const { user, position } = await getUserById(trackedUser.id);
+        if (user && position) {
+          setTrackedPosition(position);
+        }
+      }, TRACKING_INTERVAL);
+    }
+
+    // Cleanup function to clear interval when trackedUser changes or component unmounts
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [trackedUser]);
+
 
   const handleTrackUser = async () => {
     if (!userId.trim()) {
@@ -166,7 +204,7 @@ export default function AdminPage() {
 
               {trackedUser && trackedPosition && (
                 <div className="space-y-4 pt-4">
-                  <h3 className="text-lg font-semibold">Tracking Details</h3>
+                  <h3 className="text-lg font-semibold">Live Tracking Details</h3>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <Card>
@@ -187,7 +225,7 @@ export default function AdminPage() {
                         <CardHeader className="flex-row items-center space-x-2 pb-2">
                           <MapPin className="h-5 w-5 text-primary" />
                           <CardTitle className="text-lg">
-                            Last Known Location
+                            Live Location
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
