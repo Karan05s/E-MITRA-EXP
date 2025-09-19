@@ -80,8 +80,8 @@ export default function DashboardPage() {
   return (
     <>
       <div className="relative flex min-h-screen flex-col bg-background overflow-hidden">
-        <RotatingArtBackground animationSpeed="slow" />
-        <div className="relative z-10 flex flex-col flex-grow bg-background/80 backdrop-blur-sm">
+        <RotatingArtBackground />
+        <div className="relative z-10 flex flex-col flex-grow">
           <Header
             user={user}
             onLogout={logout}
