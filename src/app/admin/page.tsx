@@ -26,8 +26,7 @@ import {
   Users,
   Lock,
 } from 'lucide-react';
-import { getUserById as getUserAction } from '@/services/user-service';
-import { getAllActiveUsers } from '@/app/actions';
+import { getUserById, getAllActiveUsers } from '@/app/actions';
 import type { User as UserType, Position } from '@/types';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
@@ -73,42 +72,34 @@ export default function AdminPage() {
     libraries: LIBRARIES as any,
   });
 
+  const stopTracking = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
   // Cleanup interval on component unmount
   useEffect(() => {
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      stopTracking();
     };
   }, []);
   
-  // Effect to handle live tracking
-  useEffect(() => {
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-    }
+  const startTracking = (userIdToTrack: string) => {
+    stopTracking(); // Stop any existing tracking
     
-    // If we have a tracked user, start polling for their location
-    if (trackedUser) {
-      intervalRef.current = setInterval(async () => {
-        const { user, position } = await getUserAction(trackedUser.id);
-        if (user && position) {
-          setTrackedPosition(position);
-        }
-      }, TRACKING_INTERVAL);
-    }
-
-    // Cleanup function to clear interval when trackedUser changes or component unmounts
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(async () => {
+      const result = await getUserById(userIdToTrack);
+      if (result.success && result.data?.user && result.data?.position) {
+        setTrackedPosition(result.data.position);
       }
-    };
-  }, [trackedUser]);
+    }, TRACKING_INTERVAL);
+  };
 
 
   const handleTrackUser = async () => {
+    stopTracking();
     const cleanUserId = userId.replace(/\s/g, '');
     if (!cleanUserId) {
       setError('Please enter a User ID.');
@@ -119,11 +110,12 @@ export default function AdminPage() {
     setTrackedUser(null);
     setTrackedPosition(null);
 
-    const { user, position } = await getUserAction(cleanUserId);
+    const result = await getUserById(cleanUserId);
 
-    if (user && position) {
-      setTrackedUser(user);
-      setTrackedPosition(position);
+    if (result.success && result.data?.user && result.data?.position) {
+      setTrackedUser(result.data.user);
+      setTrackedPosition(result.data.position);
+      startTracking(cleanUserId);
     } else {
       setError('User ID not found or user has no position data yet.');
     }
