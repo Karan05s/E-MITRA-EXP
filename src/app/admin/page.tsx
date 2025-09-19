@@ -160,7 +160,9 @@ export default function AdminPage() {
     <div className="flex min-h-screen flex-col items-center bg-background p-4 md:p-6">
       <header className="w-full max-w-4xl">
         <Link href="/" className="inline-block">
-          <Logo />
+          <Button variant="outline">
+            Back to Home
+          </Button>
         </Link>
       </header>
       <main className="w-full max-w-4xl flex-grow pt-8">
@@ -347,5 +349,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
-    
