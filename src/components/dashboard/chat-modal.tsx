@@ -133,7 +133,7 @@ export function ChatModal({ isOpen, onOpenChange, user }: ChatModalProps) {
                   className={`max-w-[75%] rounded-lg px-3 py-2 text-sm ${
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
+                      : 'bg-muted text-muted-foreground whitespace-pre-wrap'
                   }`}
                 >
                   {message.content}
