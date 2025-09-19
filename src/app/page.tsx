@@ -17,6 +17,7 @@ import type { Position, EmergencyContact } from '@/types';
 import { UserIDCard } from '@/components/dashboard/user-id-card';
 import { useJsApiLoader } from '@react-google-maps/api';
 import { RotatingArtBackground } from '@/components/auth/rotating-art-background';
+import { FloatingChat } from '@/components/dashboard/floating-chat';
 
 const LIBRARIES = ['places'];
 const EMERGENCY_CONTACTS_KEY = 'e-mitra-emergency-contacts';
@@ -130,6 +131,7 @@ export default function DashboardPage() {
           emergencyContacts={emergencyContacts}
           onEmergencyContactsChange={setEmergencyContacts}
         />
+        <FloatingChat user={user} />
       </div>
     </>
   );
