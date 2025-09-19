@@ -194,4 +194,21 @@ export const redZones = [
     center: { lat: 23.8315, lng: 91.2868 }, // Agartala (city)
     radius: 500,
   },
+  // Bhopal
+  {
+    center: { lat: 23.2682, lng: 77.4644 }, // Narela Shankri / Road
+    radius: 500,
+  },
+  {
+    center: { lat: 23.2508, lng: 77.4858 }, // Anand Nagar
+    radius: 500,
+  },
+  {
+    center: { lat: 23.2550, lng: 77.5020 }, // Patel Nagar
+    radius: 500,
+  },
+  {
+    center: { lat: 23.2504, lng: 77.5250 }, // LNCT Bhopal
+    radius: 500,
+  },
 ];
