@@ -100,6 +100,8 @@ export function ChatModal({ isOpen, onOpenChange, user }: ChatModalProps) {
     }
   }, [isOpen, user.name]);
 
+  const showSuggestedQuestions = !isLoading && messages.length > 0 && messages[messages.length - 1].role === 'model';
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[90vh] max-h-[700px] w-[95vw] max-w-2xl flex-col">
@@ -145,7 +147,7 @@ export function ChatModal({ isOpen, onOpenChange, user }: ChatModalProps) {
                 )}
               </div>
             ))}
-            {messages.length === 1 && !isLoading && (
+            {showSuggestedQuestions && (
               <div className="flex flex-col items-start gap-2 pt-4">
                 <p className="text-sm text-muted-foreground px-2">
                   Or try one of these:
