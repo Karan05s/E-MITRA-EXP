@@ -49,6 +49,7 @@ export function FloatingChat({ user }: FloatingChatProps) {
     if (!content) return;
 
     const userMessage: ChatMessage = { role: 'user', content };
+    const previousMessages = messages; // Capture state before optimistic update
     const currentMessages = [...messages, userMessage];
 
     setMessages(currentMessages);
@@ -69,7 +70,7 @@ export function FloatingChat({ user }: FloatingChatProps) {
         title: 'Chat Error',
         description: errorMessage,
       });
-      setMessages(messages); // Revert optimistic update
+      setMessages(previousMessages); // Revert to the state before sending the message
     }
     setIsLoading(false);
   };
@@ -104,7 +105,7 @@ export function FloatingChat({ user }: FloatingChatProps) {
   return (
     <>
       <Button
-        className="fixed bottom-4 left-4 z-20 h-16 w-16 rounded-full shadow-lg"
+        className="fixed bottom-20 left-4 z-20 h-16 w-16 rounded-full shadow-lg"
         onClick={() => setOpen(true)}
       >
         <HelpCircle className="h-8 w-8" />
