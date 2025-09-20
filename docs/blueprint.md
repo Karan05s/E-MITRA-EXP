@@ -1,4 +1,4 @@
-# **App Name**: Guardian Angel
+# **App Name**: E-MITRA
 
 ## Core Features:
 
